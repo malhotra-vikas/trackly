@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trackly</title>
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+
+<body>
+  <div id="app">
+    <div class="app-header">
+      <div class="logo">Trackly</div>
+      <button id="close-button" class="close-button">×</button>
+    </div>
+
+    <div id="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Analyzing price history...</p>
+    </div>
+
+    <div id="content" class="content" style="display: none;">
+      <div class="product-info">
+        <h1 id="product-title" class="product-title"></h1>
+        <div class="price-container">
+          <span id="current-price" class="current-price"></span>
+          <span id="deal-signal" class="deal-signal"></span>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="price-chart"></canvas>
+      </div>
+
+      <div class="price-stats">
+        <div class="stat">
+          <span class="stat-label">Lowest Price (12mo)</span>
+          <span id="lowest-price" class="stat-value"></span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">Highest Price (12mo)</span>
+          <span id="highest-price" class="stat-value"></span>
+        </div>
+      </div>
+
+      <div id="recommendation" class="recommendation"></div>
+
+      <div class="actions">
+        <button id="watchlist-button" class="action-button primary">Add to Watchlist</button>
+        <button id="share-button" class="action-button secondary">Share</button>
+      </div>
+    </div>
+
+    <div id="error" class="error-container" style="display: none;">
+      <p>Sorry, we couldn't retrieve price data for this product.</p>
+      <button id="retry-button" class="action-button primary">Retry</button>
+    </div>
+  </div>
+
+  <script src="supabase-client.js"></script>
+  <script src="analytics.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

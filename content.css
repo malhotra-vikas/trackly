@@ -1,0 +1,12 @@
+#trackly-overlay-container {
+  transition: all 0.3s ease;
+}
+
+#trackly-toggle-button {
+  transition: all 0.2s ease;
+}
+
+#trackly-toggle-button:hover {
+  background-color: #4338ca;
+  transform: translateY(-2px);
+}
