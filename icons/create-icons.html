@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Create Icons</title>
+</head>
+
+<body>
+    <canvas id="canvas16" width="16" height="16"></canvas>
+    <canvas id="canvas48" width="48" height="48"></canvas>
+    <canvas id="canvas128" width="128" height="128"></canvas>
+
+    <script>
+        // Create simple colored square icons
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+
+            // Fill with blue background
+            ctx.fillStyle = '#4F46E5';
+            ctx.fillRect(0, 0, size, size);
+
+            // Add white "T" for Trackly
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.6}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('T', size / 2, size / 2);
+
+            // Download the icon
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Create all icons
+        createIcon('canvas16', 16);
+        setTimeout(() => createIcon('canvas48', 48), 100);
+        setTimeout(() => createIcon('canvas128', 128), 200);
+    </script>
+</body>
+
+</html>

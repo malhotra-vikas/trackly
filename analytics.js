@@ -1,5 +1,4 @@
-// Analytics service for Trackly
-// Use the global tracklySupabase object instead of importing
+// Analytics service for Trackly - Enhanced with ASIN tracking
 
 const ANALYTICS_KEY = "trackly_analytics"
 const INSTALL_DATE_KEY = "trackly_install_date"
@@ -7,17 +6,6 @@ const USER_ID_KEY = "trackly_user_id"
 
 // Declare chrome variable
 const chrome = window.chrome
-
-// Initialize Supabase auth
-function initAnalyticsWithSupabase() {
-  if (window.tracklySupabase) {
-    window.tracklySupabase.initAuth().catch((error) => {
-      console.error("Error initializing Supabase auth:", error)
-    })
-  } else {
-    console.error("Supabase client not available")
-  }
-}
 
 // Generate a random user ID
 function generateUserId() {
@@ -43,26 +31,6 @@ async function initAnalytics() {
       installDate,
       userId,
     })
-
-    // Sync with Supabase
-    try {
-      if (window.tracklySupabase) {
-        await window.tracklySupabase.syncUser(userId, installDate)
-      }
-    } catch (error) {
-      console.error("Error syncing user with Supabase:", error)
-    }
-  } else {
-    // Existing user, sync with Supabase
-    try {
-      if (window.tracklySupabase) {
-        const userId = data[USER_ID_KEY]
-        const installDate = data[INSTALL_DATE_KEY]
-        await window.tracklySupabase.syncUser(userId, installDate)
-      }
-    } catch (error) {
-      console.error("Error syncing existing user with Supabase:", error)
-    }
   }
 }
 
@@ -82,6 +50,11 @@ async function getAnalytics() {
         productsWatchlisted: 0,
         uniqueProductsWatchlisted: new Set(),
         productPageViews: 0,
+        searchPageViews: 0,
+        asinExtractionSuccess: 0,
+        asinExtractionFailure: 0,
+        pageVisits: 0,
+        uniqueAsinsFound: new Set(),
       },
     }
   )
@@ -92,8 +65,12 @@ async function saveAnalytics(analytics) {
   // Convert Set to Array for storage
   if (analytics.metrics.uniqueProductsWatchlisted instanceof Set) {
     analytics.metrics.uniqueProductsWatchlistedCount = analytics.metrics.uniqueProductsWatchlisted.size
-
     analytics.metrics.uniqueProductsWatchlisted = Array.from(analytics.metrics.uniqueProductsWatchlisted)
+  }
+
+  if (analytics.metrics.uniqueAsinsFound instanceof Set) {
+    analytics.metrics.uniqueAsinsFoundCount = analytics.metrics.uniqueAsinsFound.size
+    analytics.metrics.uniqueAsinsFound = Array.from(analytics.metrics.uniqueAsinsFound)
   }
 
   await chrome.storage.local.set({
@@ -127,15 +104,6 @@ async function trackEvent(category, action, properties = {}) {
 
   // Save updated analytics
   await saveAnalytics(analytics)
-
-  // Send to Supabase
-  try {
-    if (window.tracklySupabase) {
-      await window.tracklySupabase.trackEventInSupabase(userId, category, action, properties)
-    }
-  } catch (error) {
-    console.error("Error tracking event in Supabase:", error)
-  }
 }
 
 // Update metrics based on event
@@ -155,9 +123,47 @@ function updateMetrics(analytics, category, action, properties) {
     }
   }
 
+  // Track page visits
+  if (category === "page" && action === "visit") {
+    metrics.pageVisits++
+
+    // Track ASIN extraction success/failure
+    if (properties.hasAsin) {
+      metrics.asinExtractionSuccess++
+
+      // Track unique ASINs found
+      if (properties.asin && properties.asin !== "none") {
+        // Convert to Set if it's an array
+        if (Array.isArray(metrics.uniqueAsinsFound)) {
+          metrics.uniqueAsinsFound = new Set(metrics.uniqueAsinsFound)
+        }
+        metrics.uniqueAsinsFound.add(properties.asin)
+      }
+    } else {
+      metrics.asinExtractionFailure++
+    }
+  }
+
   // Track product page views
   if (category === "product" && action === "view") {
     metrics.productPageViews++
+  }
+
+  // Track search page views
+  if (category === "search" && action === "view") {
+    metrics.searchPageViews++
+
+    // Track ASINs found in search results
+    if (properties.asins && Array.isArray(properties.asins)) {
+      // Convert to Set if it's an array
+      if (Array.isArray(metrics.uniqueAsinsFound)) {
+        metrics.uniqueAsinsFound = new Set(metrics.uniqueAsinsFound)
+      }
+
+      properties.asins.forEach((asin) => {
+        metrics.uniqueAsinsFound.add(asin)
+      })
+    }
   }
 
   // Track price chart engagement
@@ -210,20 +216,24 @@ function calculateEngagementRates(analytics) {
   const productToChartViewRate =
     metrics.productPageViews > 0 ? (metrics.priceChartViews / metrics.productPageViews) * 100 : 0
 
+  // ASIN extraction success rate
+  const asinExtractionRate = metrics.pageVisits > 0 ? (metrics.asinExtractionSuccess / metrics.pageVisits) * 100 : 0
+
   return {
     priceChartEngagementRate: priceChartEngagementRate.toFixed(2),
     aiInsightEngagementRate: aiInsightEngagementRate.toFixed(2),
     productToChartViewRate: productToChartViewRate.toFixed(2),
+    asinExtractionRate: asinExtractionRate.toFixed(2),
   }
 }
 
-// Initialize when the script loads
-setTimeout(initAnalyticsWithSupabase, 1000) // Give time for Supabase to load
-
-// Export functions as global variables
+// Export functions globally
 window.tracklyAnalytics = {
   initAnalytics,
   trackEvent,
   getAnalytics,
   calculateEngagementRates,
 }
+
+// Initialize analytics when the script loads
+initAnalytics()

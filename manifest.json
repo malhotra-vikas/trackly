@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Trackly - Smart Shopping Assistant",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
     "storage",
@@ -10,7 +10,17 @@
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
-    "https://api.keepa.com/*"
+    "https://*.amazon.ca/*",
+    "https://*.amazon.co.uk/*",
+    "https://*.amazon.de/*",
+    "https://*.amazon.fr/*",
+    "https://*.amazon.it/*",
+    "https://*.amazon.es/*",
+    "https://*.amazon.co.jp/*",
+    "https://*.amazon.in/*",
+    "https://*.amazon.com.au/*",
+    "https://*.amazon.com.br/*",
+    "https://*.amazon.com.mx/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -34,25 +44,15 @@
         "https://*.amazon.com/*"
       ],
       "js": [
-        "supabase-cdn.js",
-        "supabase-client.js",
-        "analytics.js",
-        "content.js"
+        "content-test.js"
       ],
-      "css": [
-        "content.css"
-      ]
+      "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": [
-        "app.html",
-        "app.js",
-        "app.css",
-        "analytics.html",
-        "analytics-dashboard.js",
-        "analytics.css"
+        "app.html"
       ],
       "matches": [
         "https://*.amazon.com/*"
