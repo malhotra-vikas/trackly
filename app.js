@@ -1,18 +1,22 @@
 import { Chart } from "@/components/ui/chart"
-import { trackEvent } from "./analytics.js"
+// App script for Trackly
+
+console.log("Trackly: App script loaded")
 
 let productData = null
 let priceChart = null
 let isInWatchlist = false
 const chrome = window.chrome // Declare the chrome variable
-const recommendationElement = document.getElementById("recommendation") // Declare recommendationElement variable
 
 // Listen for messages from the content script
 window.addEventListener("message", async (event) => {
+  console.log("Trackly: App received message:", event.data)
+
   // Make sure the message is from our content script
   if (event.data.type !== "PRODUCT_DETAILS") return
 
   const { productDetails } = event.data
+  console.log("Trackly: Product details received:", productDetails)
 
   // Show loading state
   document.getElementById("loading").style.display = "flex"
@@ -26,7 +30,9 @@ window.addEventListener("message", async (event) => {
       asin: productDetails.asin,
     })
 
-    if (response.success) {
+    console.log("Trackly: Price history response:", response)
+
+    if (response && response.success) {
       productData = {
         ...productDetails,
         ...response.data,
@@ -34,7 +40,7 @@ window.addEventListener("message", async (event) => {
 
       // Check if product is in watchlist
       const watchlistResponse = await chrome.runtime.sendMessage({ type: "GET_WATCHLIST" })
-      if (watchlistResponse.success) {
+      if (watchlistResponse && watchlistResponse.success) {
         isInWatchlist = watchlistResponse.watchlist.some((item) => item.asin === productData.asin)
       }
 
@@ -50,6 +56,8 @@ window.addEventListener("message", async (event) => {
 
 function renderProductData() {
   if (!productData) return
+
+  console.log("Trackly: Rendering product data:", productData)
 
   // Hide loading, show content
   document.getElementById("loading").style.display = "none"
@@ -70,6 +78,7 @@ function renderProductData() {
   document.getElementById("highest-price").textContent = `$${productData.highestPrice.toFixed(2)}`
 
   // Set recommendation
+  const recommendationElement = document.getElementById("recommendation")
   recommendationElement.textContent = productData.recommendation
 
   // Add color based on deal signal
@@ -82,16 +91,18 @@ function renderProductData() {
   }
 
   // Track price chart view
-  trackEvent("priceChart", "view", {
-    asin: productData.asin,
-  })
+  if (window.tracklyAnalytics) {
+    window.tracklyAnalytics.trackEvent("priceChart", "view", {
+      asin: productData.asin,
+    })
 
-  // Track AI insight view
-  trackEvent("aiInsight", "view", {
-    asin: productData.asin,
-    recommendation: productData.recommendation,
-    dealSignal: productData.dealSignal,
-  })
+    // Track AI insight view
+    window.tracklyAnalytics.trackEvent("aiInsight", "view", {
+      asin: productData.asin,
+      recommendation: productData.recommendation,
+      dealSignal: productData.dealSignal,
+    })
+  }
 
   // Render price chart
   renderPriceChart()
@@ -172,9 +183,11 @@ function renderPriceChart() {
 
   // Add event listener for chart interactions
   priceChart.canvas.addEventListener("click", () => {
-    trackEvent("priceChart", "interact", {
-      asin: productData.asin,
-    })
+    if (window.tracklyAnalytics) {
+      window.tracklyAnalytics.trackEvent("priceChart", "interact", {
+        asin: productData.asin,
+      })
+    }
   })
 }
 
@@ -223,10 +236,12 @@ function setupEventListeners() {
         isInWatchlist = true
 
         // For adding to watchlist
-        trackEvent("watchlist", "add", {
-          asin: productData.asin,
-          price: productData.currentPrice,
-        })
+        if (window.tracklyAnalytics) {
+          window.tracklyAnalytics.trackEvent("watchlist", "add", {
+            asin: productData.asin,
+            price: productData.currentPrice,
+          })
+        }
       }
 
       updateWatchlistButton()
@@ -262,10 +277,12 @@ function setupEventListeners() {
 
   // Recommendation click
   document.getElementById("recommendation").addEventListener("click", () => {
-    trackEvent("aiInsight", "interact", {
-      asin: productData.asin,
-      recommendation: productData.recommendation,
-    })
+    if (window.tracklyAnalytics) {
+      window.tracklyAnalytics.trackEvent("aiInsight", "interact", {
+        asin: productData.asin,
+        recommendation: productData.recommendation,
+      })
+    }
   })
 
   // Retry button
@@ -282,7 +299,7 @@ function setupEventListeners() {
         forceRefresh: true,
       })
 
-      if (response.success) {
+      if (response && response.success) {
         productData = {
           ...productData,
           ...response.data,
@@ -306,6 +323,16 @@ function showError() {
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Trackly: App DOM loaded")
+
+  // Load Chart.js
+  const script = document.createElement("script")
+  script.src = "https://cdn.jsdelivr.net/npm/chart.js"
+  script.onload = () => {
+    console.log("Chart.js loaded")
+  }
+  document.head.appendChild(script)
+
   // Adjust iframe size based on content
   const resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
@@ -325,3 +352,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
   resizeObserver.observe(document.body)
 })
+
+console.log("Trackly: App script ready")

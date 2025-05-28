@@ -44,7 +44,7 @@
         "https://*.amazon.com/*"
       ],
       "js": [
-        "content-test.js"
+        "content.js"
       ],
       "run_at": "document_end"
     }
