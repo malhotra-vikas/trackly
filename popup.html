@@ -38,7 +38,13 @@
   <h1>Trackly</h1>
   <p>Smart Shopping Assistant</p>
   <p>Visit Amazon to start tracking products</p>
-  <button onclick="chrome.tabs.create({url: 'https://amazon.com'})">Go to Amazon</button>
+  <button id="amazon-button">Go to Amazon</button>
+
+  <script>
+    document.getElementById('amazon-button').addEventListener('click', function () {
+      chrome.tabs.create({ url: 'https://amazon.com' });
+    });
+  </script>
 </body>
 
 </html>

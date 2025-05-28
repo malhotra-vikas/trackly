@@ -1,12 +1,9 @@
-import { Chart } from "@/components/ui/chart"
-// App script for Trackly
 
+// App script for Trackly
 console.log("Trackly: App script loaded")
 
 let productData = null
-let priceChart = null
 let isInWatchlist = false
-const chrome = window.chrome // Declare the chrome variable
 
 // Listen for messages from the content script
 window.addEventListener("message", async (event) => {
@@ -24,38 +21,62 @@ window.addEventListener("message", async (event) => {
   document.getElementById("error").style.display = "none"
 
   try {
-    // Get price history from background script
-    const response = await chrome.runtime.sendMessage({
-      type: "GET_PRICE_HISTORY",
-      asin: productDetails.asin,
-    })
-
-    console.log("Trackly: Price history response:", response)
-
-    if (response && response.success) {
-      productData = {
-        ...productDetails,
-        ...response.data,
-      }
-
-      // Check if product is in watchlist
-      const watchlistResponse = await chrome.runtime.sendMessage({ type: "GET_WATCHLIST" })
-      if (watchlistResponse && watchlistResponse.success) {
-        isInWatchlist = watchlistResponse.watchlist.some((item) => item.asin === productData.asin)
-      }
-
-      renderProductData()
-    } else {
-      showError()
+    // Test if chrome APIs are available
+    if (!chrome || !chrome.runtime) {
+      console.error("Trackly: Chrome APIs not available")
+      showError("Chrome APIs not available")
+      return
     }
+
+    console.log("Trackly: Requesting price history for ASIN:", productDetails.asin)
+
+    // Get price history from background script
+    chrome.runtime.sendMessage(
+      {
+        type: "GET_PRICE_HISTORY",
+        asin: productDetails.asin,
+      },
+      (response) => {
+        console.log("Trackly: Price history response:", response)
+
+        if (chrome.runtime.lastError) {
+          console.error("Trackly: Runtime error:", chrome.runtime.lastError)
+          showError(`Runtime error: ${chrome.runtime.lastError.message}`)
+          return
+        }
+
+        if (response && response.success) {
+          console.log("Trackly: Price data received successfully")
+          productData = {
+            ...productDetails,
+            ...response.data,
+          }
+
+          // Check if product is in watchlist
+          chrome.runtime.sendMessage({ type: "GET_WATCHLIST" }, (watchlistResponse) => {
+            if (watchlistResponse && watchlistResponse.success) {
+              isInWatchlist = watchlistResponse.watchlist.some((item) => item.asin === productData.asin)
+            }
+            renderProductData()
+          })
+        } else {
+          console.error("Trackly: Failed to get price history:", response)
+          showError(`Failed to get price history: ${response ? response.error : "No response"}`)
+        }
+      },
+    )
   } catch (error) {
-    console.error("Error fetching price history:", error)
-    showError()
+    console.error("Trackly: Error in message handler:", error)
+    showError(`Error: ${error.message}`)
   }
 })
 
 function renderProductData() {
-  if (!productData) return
+  if (!productData) {
+    console.error("Trackly: No product data to render")
+    showError("No product data available")
+    return
+  }
 
   console.log("Trackly: Rendering product data:", productData)
 
@@ -90,20 +111,6 @@ function renderProductData() {
     recommendationElement.style.borderLeftColor = "#EF4444"
   }
 
-  // Track price chart view
-  if (window.tracklyAnalytics) {
-    window.tracklyAnalytics.trackEvent("priceChart", "view", {
-      asin: productData.asin,
-    })
-
-    // Track AI insight view
-    window.tracklyAnalytics.trackEvent("aiInsight", "view", {
-      asin: productData.asin,
-      recommendation: productData.recommendation,
-      dealSignal: productData.dealSignal,
-    })
-  }
-
   // Render price chart
   renderPriceChart()
 
@@ -115,7 +122,35 @@ function renderProductData() {
 }
 
 function renderPriceChart() {
-  const ctx = document.getElementById("price-chart").getContext("2d")
+  console.log("Trackly: Rendering price chart")
+
+  // Load Chart.js if not already loaded
+  if (typeof Chart === "undefined") {
+    console.log("Trackly: Loading Chart.js")
+    const script = document.createElement("script")
+    script.src = "https://cdn.jsdelivr.net/npm/chart.js"
+    script.onload = () => {
+      console.log("Trackly: Chart.js loaded, rendering chart")
+      createChart()
+    }
+    script.onerror = () => {
+      console.error("Trackly: Failed to load Chart.js")
+      document.getElementById("price-chart").parentElement.innerHTML = "<p>Chart unavailable</p>"
+    }
+    document.head.appendChild(script)
+  } else {
+    createChart()
+  }
+}
+
+function createChart() {
+  const canvas = document.getElementById("price-chart")
+  if (!canvas) {
+    console.error("Trackly: Chart canvas not found")
+    return
+  }
+
+  const ctx = canvas.getContext("2d")
 
   // Convert timestamps to dates
   const labels = productData.priceHistory.timePoints.map((timestamp) => {
@@ -123,13 +158,8 @@ function renderPriceChart() {
     return `${date.getMonth() + 1}/${date.getDate()}`
   })
 
-  // Destroy existing chart if it exists
-  if (priceChart) {
-    priceChart.destroy()
-  }
-
   // Create new chart
-  priceChart = new Chart(ctx, {
+  new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
@@ -181,14 +211,7 @@ function renderPriceChart() {
     },
   })
 
-  // Add event listener for chart interactions
-  priceChart.canvas.addEventListener("click", () => {
-    if (window.tracklyAnalytics) {
-      window.tracklyAnalytics.trackEvent("priceChart", "interact", {
-        asin: productData.asin,
-      })
-    }
-  })
+  console.log("Trackly: Chart created successfully")
 }
 
 function updateWatchlistButton() {
@@ -206,45 +229,52 @@ function updateWatchlistButton() {
 function setupEventListeners() {
   // Close button
   document.getElementById("close-button").addEventListener("click", () => {
+    console.log("Trackly: Close button clicked")
     // Send message to content script to hide overlay
     window.parent.postMessage({ type: "CLOSE_OVERLAY" }, "*")
   })
 
   // Watchlist button
   document.getElementById("watchlist-button").addEventListener("click", async () => {
+    console.log("Trackly: Watchlist button clicked")
+
     try {
       if (isInWatchlist) {
         // Remove from watchlist
-        await chrome.runtime.sendMessage({
-          type: "REMOVE_FROM_WATCHLIST",
-          asin: productData.asin,
-        })
-        isInWatchlist = false
+        chrome.runtime.sendMessage(
+          {
+            type: "REMOVE_FROM_WATCHLIST",
+            asin: productData.asin,
+          },
+          (response) => {
+            if (response && response.success) {
+              isInWatchlist = false
+              updateWatchlistButton()
+            }
+          },
+        )
       } else {
         // Add to watchlist
-        await chrome.runtime.sendMessage({
-          type: "ADD_TO_WATCHLIST",
-          product: {
-            asin: productData.asin,
-            title: productData.title,
-            currentPrice: productData.currentPrice,
-            imageUrl: productData.imageUrl,
-            dealSignal: productData.dealSignal,
-            url: productData.url,
+        chrome.runtime.sendMessage(
+          {
+            type: "ADD_TO_WATCHLIST",
+            product: {
+              asin: productData.asin,
+              title: productData.title,
+              currentPrice: productData.currentPrice,
+              imageUrl: productData.imageUrl,
+              dealSignal: productData.dealSignal,
+              url: productData.url,
+            },
           },
-        })
-        isInWatchlist = true
-
-        // For adding to watchlist
-        if (window.tracklyAnalytics) {
-          window.tracklyAnalytics.trackEvent("watchlist", "add", {
-            asin: productData.asin,
-            price: productData.currentPrice,
-          })
-        }
+          (response) => {
+            if (response && response.success) {
+              isInWatchlist = true
+              updateWatchlistButton()
+            }
+          },
+        )
       }
-
-      updateWatchlistButton()
     } catch (error) {
       console.error("Error updating watchlist:", error)
     }
@@ -252,6 +282,7 @@ function setupEventListeners() {
 
   // Share button
   document.getElementById("share-button").addEventListener("click", () => {
+    console.log("Trackly: Share button clicked")
     const text = `Check out this deal on ${productData.title}! Current price: $${productData.currentPrice.toFixed(2)}`
     const url = productData.url
 
@@ -274,83 +305,31 @@ function setupEventListeners() {
         })
     }
   })
-
-  // Recommendation click
-  document.getElementById("recommendation").addEventListener("click", () => {
-    if (window.tracklyAnalytics) {
-      window.tracklyAnalytics.trackEvent("aiInsight", "interact", {
-        asin: productData.asin,
-        recommendation: productData.recommendation,
-      })
-    }
-  })
-
-  // Retry button
-  document.getElementById("retry-button").addEventListener("click", async () => {
-    // Show loading state
-    document.getElementById("loading").style.display = "flex"
-    document.getElementById("error").style.display = "none"
-
-    try {
-      // Get price history from background script
-      const response = await chrome.runtime.sendMessage({
-        type: "GET_PRICE_HISTORY",
-        asin: productData.asin,
-        forceRefresh: true,
-      })
-
-      if (response && response.success) {
-        productData = {
-          ...productData,
-          ...response.data,
-        }
-        renderProductData()
-      } else {
-        showError()
-      }
-    } catch (error) {
-      console.error("Error fetching price history:", error)
-      showError()
-    }
-  })
 }
 
-function showError() {
+function showError(message) {
+  console.error("Trackly: Showing error:", message)
   document.getElementById("loading").style.display = "none"
   document.getElementById("content").style.display = "none"
   document.getElementById("error").style.display = "flex"
+
+  // Update error message
+  const errorContainer = document.getElementById("error")
+  const errorMessage = errorContainer.querySelector("p")
+  if (errorMessage) {
+    errorMessage.textContent = message || "Sorry, we couldn't retrieve price data for this product."
+  }
 }
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Trackly: App DOM loaded")
 
-  // Load Chart.js
-  const script = document.createElement("script")
-  script.src = "https://cdn.jsdelivr.net/npm/chart.js"
-  script.onload = () => {
-    console.log("Chart.js loaded")
-  }
-  document.head.appendChild(script)
-
-  // Adjust iframe size based on content
-  const resizeObserver = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      const height = entry.contentRect.height
-      window.parent.postMessage(
-        {
-          type: "RESIZE_IFRAME",
-          data: {
-            width: 350,
-            height: Math.min(450, height),
-          },
-        },
-        "*",
-      )
-    }
+  // Add close button handler
+  document.getElementById("close-button").addEventListener("click", () => {
+    console.log("Trackly: Close button clicked")
+    window.parent.postMessage({ type: "CLOSE_OVERLAY" }, "*")
   })
-
-  resizeObserver.observe(document.body)
 })
 
 console.log("Trackly: App script ready")

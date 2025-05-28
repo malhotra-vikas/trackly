@@ -1,8 +1,5 @@
-// Background script for Trackly - Enhanced with better logging
+// Background script for Trackly - Enhanced logging
 console.log("Trackly: Background script loaded")
-
-// Declare chrome variable
-const chrome = window.chrome
 
 // Cache for storing price history data
 const priceCache = {}
@@ -10,14 +7,6 @@ const priceCache = {}
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   console.log("Trackly: Extension installed", details.reason)
-
-  if (details.reason === "install") {
-    console.log("Trackly: First time installation")
-    // Open options page on first install
-    chrome.runtime.openOptionsPage()
-  } else if (details.reason === "update") {
-    console.log("Trackly: Extension updated")
-  }
 })
 
 // Listen for extension startup
@@ -25,24 +14,23 @@ chrome.runtime.onStartup.addListener(() => {
   console.log("Trackly: Extension started")
 })
 
-// Test function to verify background script is working
-function testBackgroundScript() {
-  console.log("Trackly: Background script test function called")
-  return "Background script is working"
-}
-
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log("Trackly: Message received:", request)
+  console.log("Trackly: Background received message:", request.type)
 
   if (request.type === "PING") {
+    console.log("Trackly: Responding to PING")
     sendResponse({ success: true, message: "Background script working" })
     return true
   }
 
   if (request.type === "GET_PRICE_HISTORY") {
-    fetchPriceHistory(request.asin)
+    console.log("Trackly: Getting price history for ASIN:", request.asin)
+
+    // Use a Promise to handle the async operation
+    getMockPriceData(request.asin)
       .then((data) => {
+        console.log("Trackly: Price history fetched successfully:", data)
         // Cache the data
         priceCache[request.asin] = {
           data: data,
@@ -51,141 +39,60 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true, data: data })
       })
       .catch((error) => {
-        console.error("Error fetching price history:", error)
+        console.error("Trackly: Error fetching price history:", error)
         sendResponse({ success: false, error: error.message })
       })
+
     return true // Required for async response
   }
 
   if (request.type === "ADD_TO_WATCHLIST") {
+    console.log("Trackly: Adding to watchlist:", request.product.asin)
     addToWatchlist(request.product)
-      .then(() => sendResponse({ success: true }))
-      .catch((error) => sendResponse({ success: false, error: error.message }))
+      .then(() => {
+        console.log("Trackly: Added to watchlist successfully")
+        sendResponse({ success: true })
+      })
+      .catch((error) => {
+        console.error("Trackly: Error adding to watchlist:", error)
+        sendResponse({ success: false, error: error.message })
+      })
     return true
   }
 
   if (request.type === "REMOVE_FROM_WATCHLIST") {
+    console.log("Trackly: Removing from watchlist:", request.asin)
     removeFromWatchlist(request.asin)
-      .then(() => sendResponse({ success: true }))
-      .catch((error) => sendResponse({ success: false, error: error.message }))
+      .then(() => {
+        console.log("Trackly: Removed from watchlist successfully")
+        sendResponse({ success: true })
+      })
+      .catch((error) => {
+        console.error("Trackly: Error removing from watchlist:", error)
+        sendResponse({ success: false, error: error.message })
+      })
     return true
   }
 
   if (request.type === "GET_WATCHLIST") {
+    console.log("Trackly: Getting watchlist")
     getWatchlist()
-      .then((watchlist) => sendResponse({ success: true, watchlist }))
-      .catch((error) => sendResponse({ success: false, error: error.message }))
+      .then((watchlist) => {
+        console.log("Trackly: Watchlist retrieved:", watchlist.length, "items")
+        sendResponse({ success: true, watchlist })
+      })
+      .catch((error) => {
+        console.error("Trackly: Error getting watchlist:", error)
+        sendResponse({ success: false, error: error.message })
+      })
     return true
   }
 })
 
-// Fetch price history from Keepa API
-async function fetchPriceHistory(asin) {
-  // Check cache first (cache valid for 6 hours)
-  if (priceCache[asin] && Date.now() - priceCache[asin].timestamp < 6 * 60 * 60 * 1000) {
-    return priceCache[asin].data
-  }
-
-  // Get API key from storage
-  const keys = await chrome.storage.local.get("keepaKey")
-  const apiKey = keys.keepaKey
-
-  if (!apiKey || apiKey === "your-keepa-api-key") {
-    console.log("Trackly: No Keepa API key configured, using mock data")
-    return getMockPriceData(asin)
-  }
-
-  const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${asin}&stats=1`
-
-  try {
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`)
-    }
-    const data = await response.json()
-    return processKeepaData(data, asin)
-  } catch (error) {
-    console.error("Keepa API error:", error)
-    // Return mock data for testing
-    return getMockPriceData(asin)
-  }
-}
-
-// Process raw Keepa data into a more usable format
-function processKeepaData(keepaData, asin) {
-  if (!keepaData.products || keepaData.products.length === 0) {
-    throw new Error("No product data found")
-  }
-
-  const product = keepaData.products[0]
-  const priceHistory = product.csv
-
-  // Extract relevant price data (Amazon price history)
-  const amazonPrices = priceHistory[0] // Index 0 is typically Amazon price
-
-  // Convert Keepa time format to JavaScript timestamps
-  const timePoints = []
-  const prices = []
-
-  for (let i = 0; i < amazonPrices.length; i += 2) {
-    const keepaTime = amazonPrices[i]
-    const price = amazonPrices[i + 1] / 100 // Keepa prices are in cents
-
-    // Convert Keepa time to JS timestamp (Keepa time is minutes since 2011-01-01)
-    const jsTime = new Date(2011, 0, 1).getTime() + keepaTime * 60000
-
-    timePoints.push(jsTime)
-    prices.push(price)
-  }
-
-  // Calculate price insights
-  const currentPrice = prices[prices.length - 1]
-  const lowestPrice = Math.min(...prices.filter((p) => p > 0))
-  const highestPrice = Math.max(...prices)
-
-  // Get prices from last 12 months only
-  const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000
-  const last12MonthsPrices = prices.filter((_, i) => timePoints[i] >= oneYearAgo && prices[i] > 0)
-  const lowestPriceLast12Months = last12MonthsPrices.length > 0 ? Math.min(...last12MonthsPrices) : null
-
-  // Determine deal signal
-  let dealSignal
-  if (currentPrice <= lowestPriceLast12Months * 1.05) {
-    dealSignal = "green"
-  } else if (currentPrice >= lowestPriceLast12Months * 1.2) {
-    dealSignal = "red"
-  } else {
-    dealSignal = "yellow"
-  }
-
-  // Generate AI recommendation
-  let recommendation
-  if (dealSignal === "green") {
-    recommendation = "Buy Now: This is one of the lowest prices we've seen in the past 12 months."
-  } else if (dealSignal === "yellow") {
-    recommendation = "Consider: The price is reasonable but has been lower in the past."
-  } else {
-    recommendation = "Wait: We've seen significantly better prices in the past 12 months."
-  }
-
-  return {
-    asin,
-    title: product.title,
-    currentPrice,
-    lowestPrice,
-    highestPrice,
-    lowestPriceLast12Months,
-    dealSignal,
-    recommendation,
-    priceHistory: {
-      timePoints,
-      prices,
-    },
-  }
-}
-
 // Mock data for testing when Keepa API is not available
-function getMockPriceData(asin) {
+async function getMockPriceData(asin) {
+  console.log("Trackly: Generating mock data for ASIN:", asin)
+
   // Generate mock price history for the last 12 months
   const now = Date.now()
   const oneYearAgo = now - 365 * 24 * 60 * 60 * 1000
@@ -227,9 +134,8 @@ function getMockPriceData(asin) {
     recommendation = "Wait: We've seen significantly better prices in the past 12 months."
   }
 
-  return {
+  const mockData = {
     asin,
-    title: `Mock Product ${asin}`,
     currentPrice,
     lowestPrice,
     highestPrice,
@@ -241,6 +147,9 @@ function getMockPriceData(asin) {
       prices,
     },
   }
+
+  console.log("Trackly: Mock data generated:", mockData)
+  return mockData
 }
 
 // Watchlist functions
@@ -268,42 +177,5 @@ async function getWatchlist() {
   const data = await chrome.storage.local.get("watchlist")
   return data.watchlist || []
 }
-
-// Check watchlist items periodically for price drops
-async function checkWatchlistPrices() {
-  const watchlist = await getWatchlist()
-
-  for (const item of watchlist) {
-    try {
-      const latestData = await fetchPriceHistory(item.asin)
-
-      // Check if price dropped
-      if (latestData.currentPrice < item.currentPrice) {
-        // Send notification
-        chrome.notifications.create({
-          type: "basic",
-          iconUrl: "icons/icon128.png",
-          title: "Price Drop Alert!",
-          message: `${item.title} price dropped from $${item.currentPrice} to $${latestData.currentPrice}!`,
-        })
-
-        // Update watchlist item with new price
-        await addToWatchlist({
-          ...item,
-          currentPrice: latestData.currentPrice,
-          dealSignal: latestData.dealSignal,
-        })
-      }
-    } catch (error) {
-      console.error(`Error checking price for ${item.asin}:`, error)
-    }
-  }
-}
-
-// Check watchlist prices every 6 hours
-setInterval(checkWatchlistPrices, 6 * 60 * 60 * 1000)
-
-// Export test function for debugging
-window.tracklyBackgroundTest = testBackgroundScript
 
 console.log("Trackly: Background script ready")

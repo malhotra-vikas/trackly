@@ -138,7 +138,7 @@ function extractProductDetails(asin) {
   const productDetails = {
     asin,
     title: title || `Product ${asin}`,
-    price,
+    price: price || 0,
     imageUrl,
     url: window.location.href,
   }
@@ -232,6 +232,11 @@ function toggleOverlay(asin) {
       background: white;
     `
 
+    // Add error handler for iframe
+    iframe.onerror = (error) => {
+      console.error("Trackly: Iframe error:", error)
+    }
+
     overlayContainer.appendChild(iframe)
     document.body.appendChild(overlayContainer)
 
@@ -244,15 +249,21 @@ function toggleOverlay(asin) {
       console.log("Trackly: Iframe loaded, sending product details")
       const productDetails = extractProductDetails(asin)
 
+      // Add a small delay before sending message
       setTimeout(() => {
-        iframe.contentWindow.postMessage(
-          {
-            type: "PRODUCT_DETAILS",
-            productDetails,
-          },
-          "*",
-        )
-        console.log("Trackly: Product details sent to iframe")
+        try {
+          console.log("Trackly: Sending product details to iframe")
+          iframe.contentWindow.postMessage(
+            {
+              type: "PRODUCT_DETAILS",
+              productDetails,
+            },
+            "*",
+          )
+          console.log("Trackly: Product details sent to iframe")
+        } catch (error) {
+          console.error("Trackly: Error sending message to iframe:", error)
+        }
       }, 500)
     })
 
