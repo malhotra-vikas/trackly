@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Trackly - Smart Shopping Assistant",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
     "storage",
@@ -20,7 +20,8 @@
     "https://*.amazon.in/*",
     "https://*.amazon.com.au/*",
     "https://*.amazon.com.br/*",
-    "https://*.amazon.com.mx/*"
+    "https://*.amazon.com.mx/*",
+    "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

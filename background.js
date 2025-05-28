@@ -1,17 +1,156 @@
 // Background script for Trackly - Enhanced logging
 console.log("Trackly: Background script loaded")
 
+
+// Key management configuration
+const SECRETS_ENDPOINT = "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/PROD/secrets"
+const EXTENSION_API_KEY = "aa79fb2656c48210d7d9cfa3821ff6f4"
+const SECRETS_CACHE_KEY = "trackly_secrets_cache"
+const SECRETS_EXPIRY_KEY = "trackly_secrets_expiry"
+
 // Cache for storing price history data
 const priceCache = {}
 
+// Key management functions
+async function checkKeys() {
+  const data = await chrome.storage.local.get(["supabaseUrl", "supabaseKey", "keepaKey"])
+  return {
+    hasSupabaseKeys: !!(data.supabaseUrl && data.supabaseKey),
+    hasKeepaKey: !!data.keepaKey,
+  }
+}
+
+async function saveKeys(keys) {
+  await chrome.storage.local.set(keys)
+  return true
+}
+
+async function getKeys() {
+  return await chrome.storage.local.get(["supabaseUrl", "supabaseKey", "keepaKey"])
+}
+
+async function fetchSecrets() {
+  console.log("Trackly: Fetching secrets from Lambda")
+
+  // Check if we have cached secrets that haven't expired
+  const cache = await chrome.storage.local.get([SECRETS_CACHE_KEY, SECRETS_EXPIRY_KEY])
+  const now = Date.now()
+
+  if (cache[SECRETS_CACHE_KEY] && cache[SECRETS_EXPIRY_KEY] && now < cache[SECRETS_EXPIRY_KEY]) {
+    console.log("Trackly: Using cached secrets")
+    return cache[SECRETS_CACHE_KEY]
+  }
+
+  try {
+    // Get the extension ID
+    const extensionId = chrome.runtime.id
+
+    console.log("Trackly: Making request to Lambda with extension ID:", extensionId)
+
+    // Fetch secrets from Lambda
+    const response = await fetch(SECRETS_ENDPOINT, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": EXTENSION_API_KEY,
+        "X-Extension-Id": extensionId,
+      },
+    })
+
+    console.log("Trackly: Lambda response status:", response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Trackly: Lambda error response:", errorText)
+      throw new Error(`Failed to fetch secrets: ${response.status} ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    console.log("Trackly: Secrets fetched successfully from Lambda")
+
+    if (!result.success) {
+      throw new Error(`API returned error: ${result.error || "Unknown error"}`)
+    }
+
+    // Cache the secrets
+    await chrome.storage.local.set({
+      [SECRETS_CACHE_KEY]: result.data,
+      [SECRETS_EXPIRY_KEY]: result.expiresAt,
+    })
+
+    // Also save individual keys for backward compatibility
+    await saveKeys({
+      supabaseUrl: result.data.supabaseUrl,
+      supabaseKey: result.data.supabaseKey,
+      keepaKey: result.data.keepaApiKey,
+    })
+
+    console.log("Trackly: Secrets fetched and cached successfully")
+    return result.data
+  } catch (error) {
+    console.error("Trackly: Error fetching secrets:", error)
+
+    // Return any cached secrets even if expired
+    if (cache[SECRETS_CACHE_KEY]) {
+      console.log("Trackly: Using expired cached secrets")
+      return cache[SECRETS_CACHE_KEY]
+    }
+
+    throw error
+  }
+}
+
+async function initializeKeys() {
+  console.log("Trackly: Initializing keys...")
+
+  try {
+    await fetchSecrets()
+    console.log("Trackly: Keys initialized successfully")
+    return true
+  } catch (error) {
+    console.error("Trackly: Failed to initialize keys:", error)
+
+    // Check if we have any cached keys as fallback
+    const keysExist = await checkKeys()
+    if (keysExist.hasSupabaseKeys && keysExist.hasKeepaKey) {
+      console.log("Trackly: Using existing cached keys")
+      return true
+    }
+
+    return false
+  }
+}
+
 // Listen for extension installation
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   console.log("Trackly: Extension installed", details.reason)
+
+  // Initialize keys on install or update
+  if (details.reason === "install" || details.reason === "update") {
+    try {
+      const success = await initializeKeys()
+      if (success) {
+        console.log("Trackly: Keys initialized successfully")
+      } else {
+        console.error("Trackly: Failed to initialize keys")
+      }
+    } catch (error) {
+      console.error("Trackly: Failed to initialize keys:", error)
+    }
+  }
 })
 
 // Listen for extension startup
-chrome.runtime.onStartup.addListener(() => {
+chrome.runtime.onStartup.addListener(async () => {
   console.log("Trackly: Extension started")
+
+  // Refresh keys on startup
+  try {
+    await fetchSecrets()
+    console.log("Trackly: Keys refreshed successfully")
+  } catch (error) {
+    console.error("Trackly: Failed to refresh keys:", error)
+  }
 })
 
 // Listen for messages from content scripts
@@ -28,7 +167,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Trackly: Getting price history for ASIN:", request.asin)
 
     // Use a Promise to handle the async operation
-    getMockPriceData(request.asin)
+    fetchPriceHistory(request.asin)
       .then((data) => {
         console.log("Trackly: Price history fetched successfully:", data)
         // Cache the data
@@ -44,6 +183,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       })
 
     return true // Required for async response
+  }
+
+  if (request.type === "FETCH_SECRETS") {
+    console.log("Trackly: Fetching secrets")
+    fetchSecrets()
+      .then((secrets) => {
+        console.log("Trackly: Secrets fetched successfully")
+        sendResponse({ success: true, data: secrets })
+      })
+      .catch((error) => {
+        console.error("Trackly: Error fetching secrets:", error)
+        sendResponse({ success: false, error: error.message })
+      })
+    return true
   }
 
   if (request.type === "ADD_TO_WATCHLIST") {
@@ -88,6 +241,59 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true
   }
 })
+
+// Fetch price history from Keepa API
+async function fetchPriceHistory(asin) {
+  console.log("Trackly: fetchPriceHistory called for ASIN:", asin)
+
+  // Check cache first (cache valid for 6 hours)
+  if (priceCache[asin] && Date.now() - priceCache[asin].timestamp < 6 * 60 * 60 * 1000) {
+    console.log("Trackly: Returning cached data for ASIN:", asin)
+    return priceCache[asin].data
+  }
+
+  // Get API key from storage
+  const keys = await getKeys()
+  let apiKey = keys.keepaKey
+
+  if (!apiKey) {
+    console.log("Trackly: No Keepa API key found, trying to fetch from Lambda")
+    try {
+      const secrets = await fetchSecrets()
+      apiKey = secrets.keepaApiKey
+
+      if (!apiKey) {
+        throw new Error("No Keepa API key available")
+      }
+    } catch (error) {
+      console.error("Trackly: Failed to get Keepa API key:", error)
+      return getMockPriceData(asin)
+    }
+  }
+
+  const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${asin}&stats=1`
+
+  try {
+    console.log("Trackly: Fetching from Keepa API")
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+    const data = await response.json()
+    return processKeepaData(data, asin)
+  } catch (error) {
+    console.error("Trackly: Keepa API error:", error)
+    // Return mock data for testing
+    return getMockPriceData(asin)
+  }
+}
+
+// Declare processKeepaData function
+function processKeepaData(data, asin) {
+  // Process Keepa API data here
+  // For now, return mock data as a placeholder
+  return getMockPriceData(asin)
+}
 
 // Mock data for testing when Keepa API is not available
 async function getMockPriceData(asin) {
