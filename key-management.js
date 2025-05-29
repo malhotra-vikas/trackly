@@ -11,10 +11,19 @@ const chrome = window.chrome || {}
 
 // Function to check if keys are set
 async function checkKeys() {
-    const data = await chrome.storage.local.get(["supabaseUrl", "supabaseKey", "keepaKey"])
+    const data = await chrome.storage.local.get([
+        "supabaseUrl",
+        "supabaseKey",
+        "keepaKey",
+        "firebaseApiKey",
+        "firebaseAuthDomain",
+        "firebaseProjectId",
+        "firebaseAppId",
+    ])
     return {
         hasSupabaseKeys: !!(data.supabaseUrl && data.supabaseKey),
         hasKeepaKey: !!data.keepaKey,
+        hasFirebaseKeys: !!(data.firebaseApiKey && data.firebaseAuthDomain && data.firebaseProjectId && data.firebaseAppId),
     }
 }
 
@@ -26,7 +35,19 @@ async function saveKeys(keys) {
 
 // Function to get keys
 async function getKeys() {
-    return await chrome.storage.local.get(["supabaseUrl", "supabaseKey", "keepaKey"])
+    return await chrome.storage.local.get([
+        "supabaseUrl",
+        "supabaseKey",
+        "keepaKey",
+        "firebaseApiKey",
+        "firebaseAuthDomain",
+        "firebaseProjectId",
+        "firebaseAppId",
+        "firebaseMeasurementId",
+        "firebaseMessagingSenderId",
+        "firebaseStorageBucketId",
+        "openaiApiKey"
+    ])
 }
 
 // Function to fetch secrets from Lambda
@@ -73,27 +94,36 @@ async function fetchSecrets() {
             throw new Error(`API returned error: ${result.error || "Unknown error"}`)
         }
 
+        const secrets = result.data
+
         // Cache the secrets
         await chrome.storage.local.set({
-            [SECRETS_CACHE_KEY]: result.data,
+            [SECRETS_CACHE_KEY]: secrets,
             [SECRETS_EXPIRY_KEY]: result.expiresAt,
         })
 
-        // Also save individual keys for backward compatibility
         await saveKeys({
-            supabaseUrl: result.data.supabaseUrl,
-            supabaseKey: result.data.supabaseKey,
-            keepaKey: result.data.keepaApiKey,
+            supabaseUrl: secrets.supabaseUrl,
+            supabaseKey: secrets.supabaseKey,
+            keepaKey: secrets.keepaApiKey,
+            firebaseApiKey: secrets.firebaseApiKey,
+            firebaseAuthDomain: secrets.firebaseAuthDomain,
+            firebaseProjectId: secrets.firebaseProjectId,
+            firebaseAppId: secrets.firebaseAppId,
+            firebaseMeasurementId: secrets.firebaseMeasurementId,
+            firebaseMessagingSenderId: secrets.firebaseMessagingSenderId,
+            firebaseStorageBucketId: secrets.firebaseStorageBucketId,
+            openaiApiKey: secrets.openaiApiKey
         })
 
         console.log("Trackly: Secrets fetched and cached successfully")
-        return result.data
+        return secrets
     } catch (error) {
         console.error("Trackly: Error fetching secrets:", error)
 
         // Return any cached secrets even if expired
         if (cache[SECRETS_CACHE_KEY]) {
-            console.log("Trackly: Using expired cached secrets")
+            console.warn("Trackly: Using expired cached secrets")
             return cache[SECRETS_CACHE_KEY]
         }
 
@@ -112,9 +142,8 @@ async function initializeKeys() {
     } catch (error) {
         console.error("Trackly: Failed to initialize keys:", error)
 
-        // Check if we have any cached keys as fallback
         const keysExist = await checkKeys()
-        if (keysExist.hasSupabaseKeys && keysExist.hasKeepaKey) {
+        if (keysExist.hasSupabaseKeys && keysExist.hasKeepaKey && keysExist.hasFirebaseKeys) {
             console.log("Trackly: Using existing cached keys")
             return true
         }

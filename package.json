@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "vite",
+    "build": "vite build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -44,6 +44,7 @@
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
     "embla-carousel-react": "8.5.1",
+    "firebase": "^11.8.1",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",
     "next": "15.2.4",
@@ -66,6 +67,15 @@
     "@types/react-dom": "^19",
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5"
-  }
+    "typescript": "^5",
+    "vite": "^6.3.5"
+  },
+  "main": "analytics-dashboard.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

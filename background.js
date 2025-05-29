@@ -13,10 +13,31 @@ const priceCache = {}
 
 // Key management functions
 async function checkKeys() {
-  const data = await chrome.storage.local.get(["supabaseUrl", "supabaseKey", "keepaKey"])
+  const data = await chrome.storage.local.get(["supabaseUrl",
+    "supabaseKey",
+    "keepaKey",
+    "openAIApiKey",
+    "firebaseApiKey",
+    "firebaseAppId",
+    "firebaseAuthDomain",
+    "firebaseMeasurementId",
+    "firebaseMessagingSenderId",
+    "firebaseProjectId",
+    "firebaseStorageBucketId"
+  ])
   return {
     hasSupabaseKeys: !!(data.supabaseUrl && data.supabaseKey),
     hasKeepaKey: !!data.keepaKey,
+    hasOpenAIKey: !!data.openAIApiKey,
+    hasFirebaseKeys: !!(
+      data.firebaseApiKey &&
+      data.firebaseAppId &&
+      data.firebaseAuthDomain &&
+      data.firebaseMeasurementId &&
+      data.firebaseMessagingSenderId &&
+      data.firebaseProjectId &&
+      data.firebaseStorageBucketId
+    )
   }
 }
 
@@ -26,7 +47,19 @@ async function saveKeys(keys) {
 }
 
 async function getKeys() {
-  return await chrome.storage.local.get(["supabaseUrl", "supabaseKey", "keepaKey"])
+  return await chrome.storage.local.get([
+    "supabaseUrl",
+    "supabaseKey",
+    "keepaKey",
+    "openAIApiKey",
+    "firebaseApiKey",
+    "firebaseAppId",
+    "firebaseAuthDomain",
+    "firebaseMeasurementId",
+    "firebaseMessagingSenderId",
+    "firebaseProjectId",
+    "firebaseStorageBucketId"
+  ])
 }
 
 async function fetchSecrets() {
@@ -83,6 +116,14 @@ async function fetchSecrets() {
       supabaseUrl: result.data.supabaseUrl,
       supabaseKey: result.data.supabaseKey,
       keepaKey: result.data.keepaApiKey,
+      openAIApiKey: result.data.openaiApiKey,
+      firebaseApiKey: result.data.firebaseApiKey,
+      firebaseAppId: result.data.firebaseAppId,
+      firebaseAuthDomain: result.data.firebaseAuthDomain,
+      firebaseMeasurementId: result.data.firebaseMeasurementId,
+      firebaseMessagingSenderId: result.data.firebaseMessagingSenderId,
+      firebaseProjectId: result.data.firebaseProjectId,
+      firebaseStorageBucketId: result.data.firebaseStorageBucketId,
     })
 
     console.log("Trackly: Secrets fetched and cached successfully")
@@ -100,6 +141,30 @@ async function fetchSecrets() {
   }
 }
 
+async function callOpenAI(prompt) {
+  const keys = await getKeys()
+  if (!keys.openAIApiKey) throw new Error("OpenAI key missing")
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${keys.openAIApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [{ role: "user", content: prompt }],
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error("OpenAI call failed")
+  }
+
+  const data = await response.json()
+  return data.choices?.[0]?.message?.content
+}
+
 async function initializeKeys() {
   console.log("Trackly: Initializing keys...")
 
@@ -112,7 +177,7 @@ async function initializeKeys() {
 
     // Check if we have any cached keys as fallback
     const keysExist = await checkKeys()
-    if (keysExist.hasSupabaseKeys && keysExist.hasKeepaKey) {
+    if (keysExist.hasSupabaseKeys && keysExist.hasKeepaKey && keysExist.hasFirebaseKeys && keysExist.hasOpenAIKey) {
       console.log("Trackly: Using existing cached keys")
       return true
     }
@@ -170,11 +235,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     fetchPriceHistory(request.asin)
       .then((data) => {
         console.log("Trackly: Price history fetched successfully:", data)
-        // Cache the data
-        priceCache[request.asin] = {
-          data: data,
-          timestamp: Date.now(),
-        }
         sendResponse({ success: true, data: data })
       })
       .catch((error) => {
@@ -184,6 +244,34 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     return true // Required for async response
   }
+
+  if (request.type === "OPEN_SIGNIN") {
+    console.log("Trackly: Opening sign-in page");
+
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("signin.html") // or external login page
+    });
+
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (request.type === "ANALYZE_PRICE_TREND") {
+    callOpenAI(`Analyze this price history: ${JSON.stringify(request.data)}`)
+      .then(summary => sendResponse({ success: true, summary }))
+      .catch(err => sendResponse({ success: false, error: err.message }))
+    return true
+  }
+
+  if (request.type === "GO_TO_AMAZON") {
+    console.log("Trackly: Opening Amazon homepage");
+
+    chrome.tabs.create({ url: "https://www.amazon.com" });
+
+    sendResponse({ success: true });
+    return true;
+  }
+
 
   if (request.type === "FETCH_SECRETS") {
     console.log("Trackly: Fetching secrets")
@@ -242,15 +330,32 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 })
 
+async function getFromStorage(key) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([key], (result) => {
+      resolve(result[key]);
+    });
+  });
+}
+
+async function setToStorage(key, value) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [key]: value }, () => resolve());
+  });
+}
+
 // Fetch price history from Keepa API
 async function fetchPriceHistory(asin) {
   console.log("Trackly: fetchPriceHistory called for ASIN:", asin)
+  // 1. Check local cache
+  const cacheKey = `trackly_pricehistory_cache_${asin}`;
+  const cached = await getFromStorage(cacheKey);
 
-  // Check cache first (cache valid for 6 hours)
-  if (priceCache[asin] && Date.now() - priceCache[asin].timestamp < 6 * 60 * 60 * 1000) {
-    console.log("Trackly: Returning cached data for ASIN:", asin)
-    return priceCache[asin].data
+  if (cached && Date.now() - cached.timestamp < 6 * 60 * 60 * 1000) {
+    console.log("Trackly: Returning cached data for ASIN:", asin);
+    return cached.data;
   }
+
 
   // Get API key from storage
   const keys = await getKeys()
@@ -271,7 +376,9 @@ async function fetchPriceHistory(asin) {
     }
   }
 
-  const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${asin}&stats=1`
+  const url = `https://api.keepa.com/product?key=${apiKey}&domain=1&asin=${asin}&days=365`
+
+  console.log("Trackly: Keppa URL -- ", url)
 
   try {
     console.log("Trackly: Fetching from Keepa API")
@@ -279,20 +386,101 @@ async function fetchPriceHistory(asin) {
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`)
     }
-    const data = await response.json()
-    return processKeepaData(data, asin)
+    const data = await response.json();
+
+    if (!data || !data.products || data.products.length === 0) {
+      console.error("Invalid Keepa response:", data);
+      return;
+    }
+
+    const product = data.products[0];
+
+    const rawData = product.csv
+
+    const priceHistory = extractLastYearPrices(rawData);
+
+    console.log("📈 Combined Price History (Last 1 Year):");
+    priceHistory.forEach(entry => {
+      console.log(`Date: ${entry.date}, Amazon Price: ${entry.amazonPrice ?? "N/A"}, Marketplace Price: ${entry.marketplacePrice ?? "N/A"}`);
+    });
+
+    // Cache it
+    await setToStorage(cacheKey, {
+      timestamp: Date.now(),
+      data: priceHistory,
+    });
+
+    /*
+        // Filter last 1 year
+        const result = [];
+        for (let i = 0; i < rawData.length; i += 2) {
+          const time = rawData[i];
+          const price = rawData[i + 1];
+          if (time >= oneYearAgo) {
+            const timestamp = new Date((time + 1293840) * 60 * 1000); // convert back to real date
+            result.push({ date: timestamp.toISOString().split('T')[0], price: price / 100 });
+          }
+        }
+        console.log("Trackly: Fetched data from Keepa API", result)
+    */
+    return priceHistory
   } catch (error) {
     console.error("Trackly: Keepa API error:", error)
     // Return mock data for testing
-    return getMockPriceData(asin)
+    //return getMockPriceData(asin)
   }
 }
 
-// Declare processKeepaData function
-function processKeepaData(data, asin) {
-  // Process Keepa API data here
-  // For now, return mock data as a placeholder
-  return getMockPriceData(asin)
+function extractLastYearPrices(csvArray) {
+  const amazonSellerPrices = csvArray[0]
+  const marketplaceSellerPrices = csvArray[1]
+
+  const oneYearAgo = Date.now() - 365 * 24 * 60 * 60 * 1000;
+  const results = [];
+
+  console.log("RAW amazonSellerPrices:", amazonSellerPrices);
+  console.log("RAW marketplaceSellerPrices:", marketplaceSellerPrices);
+
+
+  function buildPriceMap(dataArray) {
+    const map = new Map();
+    for (let i = 0; i < dataArray.length; i += 2) {
+      const time = dataArray[i];
+      const price = dataArray[i + 1];
+      if (price === -1) continue;
+
+      const date = keepaTimeToDate(time);
+      if (date.getTime() < oneYearAgo) continue;
+
+      const dateStr = date.toISOString().split("T")[0];
+      map.set(dateStr, price / 100); // price in dollars
+    }
+    return map;
+  }
+
+  const amazonMap = buildPriceMap(amazonSellerPrices);
+  const marketplaceMap = buildPriceMap(marketplaceSellerPrices);
+
+  // Combine all unique dates
+  const allDates = new Set([...amazonMap.keys(), ...marketplaceMap.keys()]);
+  const sortedDates = Array.from(allDates).sort();
+
+  const combined = sortedDates.map((date) => ({
+    date,
+    amazonPrice: amazonMap.get(date) ?? null,
+    marketplacePrice: marketplaceMap.get(date) ?? null,
+  }));
+
+  return combined;
+}
+
+function keepaTimeToDate(keepaTime) {
+  return new Date((keepaTime + 21564000) * 60000);
+}
+function keepaMinutesToDate(keepaTime) {
+  // Convert Keepa minutes to JS Date using offset to Unix time
+  const unixTimeInMs = (keepaTime + 21564000) * 60000;
+  return new Date(unixTimeInMs);
 }
 
 // Mock data for testing when Keepa API is not available

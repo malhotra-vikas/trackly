@@ -78,7 +78,20 @@ function renderProductData() {
     return
   }
 
-  console.log("Trackly: Rendering product data:", productData)
+  console.log("Trackly: Rendering product data:", productData.asin)
+
+  const history = productData.priceHistory
+  console.log("Trackly: Price History:", history)
+
+  const prices = history
+    .map(entry => entry.marketplacePrice ?? entry.amazonPrice)
+    .filter(price => typeof price === "number")
+  console.log("Trackly: Price History Map: ", prices)
+
+  if (prices.length === 0) return;
+
+  const lowest = Math.min(...prices).toFixed(2);
+  const highest = Math.max(...prices).toFixed(2);
 
   // Hide loading, show content
   document.getElementById("loading").style.display = "none"
@@ -88,15 +101,15 @@ function renderProductData() {
   document.getElementById("product-title").textContent = productData.title
 
   // Set current price
-  document.getElementById("current-price").textContent = `$${productData.currentPrice.toFixed(2)}`
+  document.getElementById("current-price").textContent = `$${productData.price.toFixed(2)}`
 
   // Set deal signal
   const dealSignalElement = document.getElementById("deal-signal")
   dealSignalElement.className = `deal-signal signal-${productData.dealSignal}`
 
   // Set price stats
-  document.getElementById("lowest-price").textContent = `$${productData.lowestPriceLast12Months.toFixed(2)}`
-  document.getElementById("highest-price").textContent = `$${productData.highestPrice.toFixed(2)}`
+  document.getElementById("lowest-price").textContent = `$${lowest}`;
+  document.getElementById("highest-price").textContent = `$${highest}`;
 
   // Set recommendation
   const recommendationElement = document.getElementById("recommendation")
@@ -152,13 +165,15 @@ function createChart() {
 
   const ctx = canvas.getContext("2d")
 
-  // Convert timestamps to dates
-  const labels = productData.priceHistory.timePoints.map((timestamp) => {
-    const date = new Date(timestamp)
+  const labels = productData.priceHistory.map((entry) => {
+    const date = new Date(entry.date)
     return `${date.getMonth() + 1}/${date.getDate()}`
   })
 
-  // Create new chart
+  const prices = productData.priceHistory.map((entry) =>
+    entry.marketplacePrice ?? entry.amazonPrice
+  )
+
   new Chart(ctx, {
     type: "line",
     data: {
@@ -166,7 +181,7 @@ function createChart() {
       datasets: [
         {
           label: "Price",
-          data: productData.priceHistory.prices,
+          data: prices,
           borderColor: "#4F46E5",
           backgroundColor: "rgba(79, 70, 229, 0.1)",
           borderWidth: 2,
@@ -213,6 +228,7 @@ function createChart() {
 
   console.log("Trackly: Chart created successfully")
 }
+
 
 function updateWatchlistButton() {
   const watchlistButton = document.getElementById("watchlist-button")

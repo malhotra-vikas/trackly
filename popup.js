@@ -2,6 +2,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load watchlist
   const watchlistContainer = document.getElementById("watchlist-container")
 
+  const amazonBtn = document.getElementById("amazon-button");
+  const signinBtn = document.getElementById("signin-button");
+
+  amazonBtn?.addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://www.amazon.com" });
+  });
+
+  signinBtn?.addEventListener("click", () => {
+    chrome.runtime.sendMessage({ type: "OPEN_SIGNIN" });
+  });
+
   try {
     const response = await window.chrome.runtime.sendMessage({ type: "GET_WATCHLIST" })
 

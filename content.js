@@ -52,7 +52,7 @@ if (window.location.hostname.includes("amazon.com")) {
       if (indicator.parentNode) {
         indicator.textContent = `ASIN: ${asin}`
       }
-    }, 2000)
+    }, 1000)
 
     // Create Trackly button
     createTracklyButton(asin)
@@ -194,7 +194,7 @@ function createTracklyButton(asin) {
   setTimeout(() => {
     document.body.appendChild(toggleButton)
     console.log("Trackly: Button added to page")
-  }, 3000)
+  }, 2000)
 }
 
 // Function to create and toggle the overlay
@@ -249,22 +249,33 @@ function toggleOverlay(asin) {
       console.log("Trackly: Iframe loaded, sending product details")
       const productDetails = extractProductDetails(asin)
 
-      // Add a small delay before sending message
-      setTimeout(() => {
-        try {
-          console.log("Trackly: Sending product details to iframe")
-          iframe.contentWindow.postMessage(
-            {
-              type: "PRODUCT_DETAILS",
-              productDetails,
-            },
-            "*",
-          )
-          console.log("Trackly: Product details sent to iframe")
-        } catch (error) {
-          console.error("Trackly: Error sending message to iframe:", error)
+      // Try fetching cached price history first
+      chrome.runtime.sendMessage({ type: "GET_PRICE_HISTORY", asin }, (response) => {
+        console.log("Trackly: Fetching Cached price history ", response)
+
+        if (response && response.success) {
+          productDetails.priceHistory = response.data
+          console.log("Trackly: Cached price history added to productDetails")
+        } else {
+          console.warn("Trackly: No cached price history found")
         }
-      }, 500)
+
+        setTimeout(() => {
+          try {
+            console.log("Trackly: Sending product details to iframe ", productDetails)
+            iframe.contentWindow.postMessage(
+              {
+                type: "PRODUCT_DETAILS",
+                productDetails,
+              },
+              "*",
+            )
+          } catch (error) {
+            console.error("Trackly: Error sending message to iframe:", error)
+          }
+        }, 500)
+      })
+
     })
 
     console.log("Trackly: Overlay created")

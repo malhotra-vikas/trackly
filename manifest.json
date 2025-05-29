@@ -6,7 +6,8 @@
   "permissions": [
     "storage",
     "tabs",
-    "activeTab"
+    "activeTab",
+    "identity"
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
@@ -57,12 +58,18 @@
     {
       "resources": [
         "app.html",
+        "signin.html",
         "app.js",
+        "signin.js",
+        "popup.js",
         "app.css"
       ],
       "matches": [
         "https://*.amazon.com/*"
       ]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
