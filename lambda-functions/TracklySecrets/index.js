@@ -37,10 +37,10 @@ exports.handler = async (event) => {
         };
     }
 
+/*
     // Get extension ID for verification
     const extensionId = headers['x-extension-id'] || headers['X-Extension-Id'] || '';
     const validExtensionIds = (process.env.VALID_EXTENSION_IDS || '').split(',');
-
     if (!validExtensionIds.includes(extensionId)) {
         console.log('Invalid extension ID. Received:', extensionId, 'Valid IDs:', validExtensionIds);
         return {
@@ -49,7 +49,7 @@ exports.handler = async (event) => {
             body: JSON.stringify({ error: 'Unauthorized extension' })
         };
     }
-
+*/
     // Return the requested secrets
     const secrets = {
         // Keppa Keys
