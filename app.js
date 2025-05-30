@@ -158,16 +158,16 @@ function renderProductData() {
   const recommendationContainer = document.getElementById("recommendation")
 
   recommendationTextElement.textContent =
-    `${labelMap[productData.dealSignal]} — ${productData.buyRecommendation}`
+    `${labelMap[productData.dealSignal]} ${productData.buyRecommendation}`
 
   recommendationTextElement.style.borderLeftColor = colorMap[productData.dealSignal] || '#D9CFC5'
 
   const signalColor = borderColors[productData.dealSignal] || "#4F46E5" // fallback to indigo
-  recommendationContainer.style.borderLeftColor = signalColor
+  //recommendationContainer.style.borderLeftColor = signalColor
 
 
   // Render price chart
-  //renderPriceChart()
+  renderPriceChart()
 
   // Update watchlist button
   updateWatchlistButton()
@@ -177,60 +177,78 @@ function renderProductData() {
 }
 
 function renderPriceChart() {
-  console.log("Trackly: Rendering price chart")
+  console.log("Trackly: Rendering price chart");
 
-  // Load Chart.js if not already loaded
-  if (typeof Chart === "undefined") {
-    console.log("Trackly: Loading Chart.js")
-    const script = document.createElement("script")
-    script.src = chrome.runtime.getURL("assets/chart.js")
-    script.onload = () => {
-      console.log("Trackly: Chart.js loaded, rendering chart")
-      createChart()
-    }
-    script.onerror = () => {
-      console.error("Trackly: Failed to load Chart.js")
-      document.getElementById("price-chart").parentElement.innerHTML = "<p>Chart unavailable</p>"
-    }
-    document.head.appendChild(script)
-  } else {
-    createChart()
+  const canvas = document.getElementById("price-chart");
+  if (!canvas) {
+    console.error("Trackly: Canvas element not found.");
+    return;
   }
+
+  // Explicitly set chart height for layout consistency
+  canvas.height = 200;
+
+  // If Chart.js is already available, create chart immediately
+  if (typeof Chart !== "undefined") {
+    createChart();
+    return;
+  }
+
+  // Dynamically load Chart.js only if it's not already available
+  const script = document.createElement("script");
+  script.src = chrome.runtime.getURL("chart.umd.js"); // Adjusted to reflect your actual file
+  script.onload = () => {
+    console.log("Trackly: Chart.js loaded");
+    createChart();
+  };
+  script.onerror = () => {
+    console.error("Trackly: Failed to load Chart.js");
+    canvas.parentElement.innerHTML = "<p>Chart unavailable</p>";
+  };
+  document.head.appendChild(script);
 }
 
 function createChart() {
-  const canvas = document.getElementById("price-chart")
-  if (!canvas) {
-    console.error("Trackly: Chart canvas not found")
-    return
+  const canvas = document.getElementById("price-chart");
+  const ctx = canvas.getContext("2d");
+
+  const history = productData?.priceHistory || [];
+
+  const labels = history.map((entry) => {
+    const date = new Date(entry.date);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  });
+
+  const prices = history.map((entry) => entry.marketplacePrice ?? entry.amazonPrice);
+
+  if (!prices.length) {
+    canvas.parentElement.innerHTML = "<p>No price data available</p>";
+    return;
   }
 
-  const ctx = canvas.getContext("2d")
+  // Destroy existing chart instance if needed
+  if (canvas._chartInstance) {
+    canvas._chartInstance.destroy();
+  }
 
-  const labels = productData.priceHistory.map((entry) => {
-    const date = new Date(entry.date)
-    return `${date.getMonth() + 1}/${date.getDate()}`
-  })
-
-  const prices = productData.priceHistory.map((entry) =>
-    entry.marketplacePrice ?? entry.amazonPrice
-  )
-
-  new Chart(ctx, {
+  const chartInstance = new Chart(ctx, {
     type: "line",
     data: {
-      labels: labels,
+      labels,
       datasets: [
         {
           label: "Price",
           data: prices,
-          borderColor: "#4F46E5",
-          backgroundColor: "rgba(79, 70, 229, 0.1)",
+          borderColor: "#A8C3A0", // Muted Sage (Brand)
+          backgroundColor: "rgba(168, 195, 160, 0.2)", // Soft fill
           borderWidth: 2,
           pointRadius: 0,
-          pointHoverRadius: 4,
+          pointHoverRadius: 5,
+          tension: 0.2,
           fill: true,
-          tension: 0.1,
         },
       ],
     },
@@ -238,9 +256,7 @@ function createChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: false,
-        },
+        legend: { display: false },
         tooltip: {
           mode: "index",
           intersect: false,
@@ -251,24 +267,28 @@ function createChart() {
       },
       scales: {
         x: {
-          grid: {
-            display: false,
-          },
+          grid: { display: false },
           ticks: {
             maxTicksLimit: 6,
+            color: "#5E5E5E", // Charcoal Gray
+            font: { family: "Inter, sans-serif" },
           },
         },
         y: {
-          beginAtZero: false,
           ticks: {
-            callback: (value) => "$" + value,
+            color: "#1C1C1E", // Soft Black
+            callback: (value) => `$${value}`,
+            font: { family: "Inter, sans-serif" },
           },
         },
       },
     },
-  })
+  });
 
-  console.log("Trackly: Chart created successfully")
+  // Save chart instance for future cleanup
+  canvas._chartInstance = chartInstance;
+
+  console.log("Trackly: Chart created successfully");
 }
 
 

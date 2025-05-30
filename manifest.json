@@ -63,6 +63,7 @@
         "app.js",
         "signin.js",
         "popup.js",
+        "chart.umd.js",
         "app.css"
       ],
       "matches": [

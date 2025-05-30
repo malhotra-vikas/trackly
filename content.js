@@ -90,8 +90,9 @@ async function callOpenAI(asin, title, price, priceHistory) {
   const prompt = `The user is thinking about purchasing the product with Amazon ASIN: ${asin}. 
     The title of this product is "${title}". The product is currently listed for sale at $${price}.
     Here is the last 12 month price history for this product: ${JSON.stringify(priceHistory)}.
-
+    
     Analyze this data as an Expert Shopper and give me your recommendation in 20 words or less to describe if this is the right time to buy or shoud the user wait to make a purchase.
+    The recomemndation tone needs to be Calm, smart, and clear — no jargon, no hype, no hyperbole.
     `
 
   try {
