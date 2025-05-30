@@ -245,7 +245,8 @@ function createChart() {
           borderColor: "#A8C3A0", // Muted Sage (Brand)
           backgroundColor: "rgba(168, 195, 160, 0.2)", // Soft fill
           borderWidth: 2,
-          pointRadius: 0,
+          pointRadius: 2,
+          pointBackgroundColor: "#A8C3A0", // Optional: Muted Sage for consistency
           pointHoverRadius: 5,
           tension: 0.2,
           fill: true,

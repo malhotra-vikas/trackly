@@ -34,9 +34,31 @@ body {
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  font-family: 'Playfair Display', serif;
   font-weight: bold;
   font-size: 18px;
+  color: #1C1C1E;
 }
+
+.logo-img {
+  height: 24px;
+  /* reasonable header height */
+  width: auto;
+  /* preserve aspect ratio */
+  object-fit: contain;
+  /* ensures no squishing */
+  border-radius: 4px;
+  /* optional, for rounded corners */
+}
+
+.logo-text {
+  color: #1C1C1E;
+}
+
 
 .close-button {
   background: none;
@@ -156,7 +178,7 @@ body {
 }
 
 .recommendation {
-  border: 4px solid #D9CFC5; 
+  border: 4px solid #D9CFC5;
 
   background-color: white;
   padding: 16px;
@@ -184,7 +206,8 @@ body {
 }
 
 .action-button.primary {
-  background-color: #D9CFC5; /* Taupe */
+  background-color: #D9CFC5;
+  /* Taupe */
   color: #1C1C1E;
 }
 
