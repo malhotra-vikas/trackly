@@ -5,11 +5,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trackly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&family=Playfair+Display&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="app.css" />
 </head>
 
 <body>
-  <div id="app" class="app-popup">
+  <div id="app">
     <div class="app-header">
       <div class="logo">Trackly</div>
       <button id="close-button" class="close-button" aria-label="Close overlay">×</button>
@@ -17,7 +18,7 @@
 
     <div id="loading" class="loading-container">
       <div class="loading-spinner"></div>
-      <p>Analyzing price history...</p>
+      <p>Analyzing price history... </p>
     </div>
 
     <div id="content" class="content" style="display: none;">
@@ -47,11 +48,12 @@
       <div id="recommendation" class="recommendation" aria-live="polite">
         <span id="recommendation-text"></span>
       </div>
-
+<!--
       <div class="actions">
         <button id="watchlist-button" class="action-button primary">Add to Watchlist</button>
         <button id="share-button" class="action-button secondary">Share</button>
       </div>
+-->      
     </div>
 
     <div id="error" class="error-container" style="display: none;">

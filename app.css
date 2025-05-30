@@ -10,6 +10,9 @@ body {
   height: 100%;
   overflow: hidden;
   background-color: #f9fafb;
+  color: #1C1C1E;
+  /* Soft Black */
+  font-family: 'Inter', sans-serif;
 }
 
 #app {
@@ -60,10 +63,12 @@ body {
 }
 
 .product-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
   font-size: 16px;
-  font-weight: 600;
+  color: #1C1C1E;
+
   margin-bottom: 8px;
-  color: #111827;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -90,15 +95,15 @@ body {
 }
 
 .signal-green {
-  background-color: #10b981;
+  background-color: #A8C3A0;
 }
 
 .signal-yellow {
-  background-color: #f59e0b;
+  background-color: #E7D8A1;
 }
 
 .signal-red {
-  background-color: #ef4444;
+  background-color: #D9A6A1;
 }
 
 .chart-container {
@@ -146,6 +151,8 @@ body {
 }
 
 .recommendation {
+  border: 4px solid #D9CFC5; /* fallback */
+
   background-color: white;
   padding: 16px;
   border-radius: 8px;
@@ -153,7 +160,6 @@ body {
   margin-bottom: 16px;
   font-size: 14px;
   color: #111827;
-  border-left: 4px solid #4f46e5;
 }
 
 .actions {
@@ -173,17 +179,17 @@ body {
 }
 
 .action-button.primary {
-  background-color: #4f46e5;
-  color: white;
+  background-color: #D9CFC5; /* Taupe */
+  color: #1C1C1E;
 }
 
 .action-button.primary:hover {
-  background-color: #4338ca;
+  background-color: #B5AFA6;
 }
 
 .action-button.secondary {
-  background-color: #e5e7eb;
-  color: #374151;
+  background-color: #E7E1DA;
+  color: #2F3A45;
 }
 
 .action-button.secondary:hover {
@@ -266,16 +272,17 @@ body {
 
 /* Visual popup border */
 .app-popup {
-  width: 80vw;
-  height: 75vh;
   margin: auto;
   margin-top: 10vh;
-  border: 3px solid #4f46e5;
   border-radius: 12px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-  background-color: white;
   display: flex;
   flex-direction: column;
+  background-color: #F7F2EE;
+  /* Soft Clay */
+  border: 2px solid #D9CFC5;
+  /* Warm Neutral Taupe */
+
 }
 
 

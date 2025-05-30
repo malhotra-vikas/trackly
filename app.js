@@ -140,6 +140,12 @@ function renderProductData() {
     red: "🔴 ",
   }
 
+  const colorMap = {
+    green: '#A8C3A0',      // Muted Sage
+    yellow: '#E7D8A1',     // Warm Sandstone
+    red: '#D9A6A1'         // Rosewood Clay
+  }
+
   // Apply dynamic border-left color based on deal signal
   const borderColors = {
     green: "#10B981",   // emerald-500
@@ -154,6 +160,7 @@ function renderProductData() {
   recommendationTextElement.textContent =
     `${labelMap[productData.dealSignal]} — ${productData.buyRecommendation}`
 
+  recommendationTextElement.style.borderLeftColor = colorMap[productData.dealSignal] || '#D9CFC5'
 
   const signalColor = borderColors[productData.dealSignal] || "#4F46E5" // fallback to indigo
   recommendationContainer.style.borderLeftColor = signalColor
