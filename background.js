@@ -141,29 +141,6 @@ async function fetchSecrets() {
   }
 }
 
-async function callOpenAI(prompt) {
-  const keys = await getKeys()
-  if (!keys.openAIApiKey) throw new Error("OpenAI key missing")
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${keys.openAIApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [{ role: "user", content: prompt }],
-    }),
-  })
-
-  if (!response.ok) {
-    throw new Error("OpenAI call failed")
-  }
-
-  const data = await response.json()
-  return data.choices?.[0]?.message?.content
-}
 
 async function initializeKeys() {
   console.log("Trackly: Initializing keys...")
@@ -255,14 +232,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true });
     return true;
   }
-
-  if (request.type === "ANALYZE_PRICE_TREND") {
-    callOpenAI(`Analyze this price history: ${JSON.stringify(request.data)}`)
-      .then(summary => sendResponse({ success: true, summary }))
-      .catch(err => sendResponse({ success: false, error: err.message }))
-    return true
-  }
-
+  /*
+    if (request.type === "ANALYZE_PRICE_TREND") {
+      callOpenAI(`Analyze this price history: ${JSON.stringify(request.data)}`)
+        .then(summary => sendResponse({ success: true, summary }))
+        .catch(err => sendResponse({ success: false, error: err.message }))
+      return true
+    }
+  */
   if (request.type === "GO_TO_AMAZON") {
     console.log("Trackly: Opening Amazon homepage");
 
@@ -410,19 +387,6 @@ async function fetchPriceHistory(asin) {
       data: priceHistory,
     });
 
-    /*
-        // Filter last 1 year
-        const result = [];
-        for (let i = 0; i < rawData.length; i += 2) {
-          const time = rawData[i];
-          const price = rawData[i + 1];
-          if (time >= oneYearAgo) {
-            const timestamp = new Date((time + 1293840) * 60 * 1000); // convert back to real date
-            result.push({ date: timestamp.toISOString().split('T')[0], price: price / 100 });
-          }
-        }
-        console.log("Trackly: Fetched data from Keepa API", result)
-    */
     return priceHistory
   } catch (error) {
     console.error("Trackly: Keepa API error:", error)

@@ -71,6 +71,23 @@ window.addEventListener("message", async (event) => {
   }
 })
 
+// ≤ 5% above lowest	- Green
+// Between 5% above lowest and 80% of highest	- Yellow
+// Close to or above highest	
+function computeDealSignal(currentPrice, lowestPrice, highestPrice) {
+  const nearLowestThreshold = lowestPrice * 1.05
+  const nearHighestThreshold = highestPrice * 0.8
+
+  if (currentPrice <= nearLowestThreshold) {
+    return "green"
+  } else if (currentPrice <= nearHighestThreshold) {
+    return "yellow"
+  } else {
+    return "red"
+  }
+}
+
+
 function renderProductData() {
   if (!productData) {
     console.error("Trackly: No product data to render")
@@ -111,21 +128,39 @@ function renderProductData() {
   document.getElementById("lowest-price").textContent = `$${lowest}`;
   document.getElementById("highest-price").textContent = `$${highest}`;
 
-  // Set recommendation
-  const recommendationElement = document.getElementById("recommendation")
-  recommendationElement.textContent = productData.recommendation
+  productData.dealSignal = computeDealSignal(
+    productData.price,
+    lowest,
+    highest
+  )
 
-  // Add color based on deal signal
-  if (productData.dealSignal === "green") {
-    recommendationElement.style.borderLeftColor = "#10B981"
-  } else if (productData.dealSignal === "yellow") {
-    recommendationElement.style.borderLeftColor = "#F59E0B"
-  } else {
-    recommendationElement.style.borderLeftColor = "#EF4444"
+  const labelMap = {
+    green: "🟢 ",
+    yellow: "🟡 ",
+    red: "🔴 ",
   }
 
+  // Apply dynamic border-left color based on deal signal
+  const borderColors = {
+    green: "#10B981",   // emerald-500
+    yellow: "#F59E0B",  // amber-500
+    red: "#EF4444",     // red-500
+  }
+
+  // Set recommendation
+  const recommendationTextElement = document.getElementById("recommendation-text")
+  const recommendationContainer = document.getElementById("recommendation")
+
+  recommendationTextElement.textContent =
+    `${labelMap[productData.dealSignal]} — ${productData.buyRecommendation}`
+
+
+  const signalColor = borderColors[productData.dealSignal] || "#4F46E5" // fallback to indigo
+  recommendationContainer.style.borderLeftColor = signalColor
+
+
   // Render price chart
-  renderPriceChart()
+  //renderPriceChart()
 
   // Update watchlist button
   updateWatchlistButton()
@@ -141,7 +176,7 @@ function renderPriceChart() {
   if (typeof Chart === "undefined") {
     console.log("Trackly: Loading Chart.js")
     const script = document.createElement("script")
-    script.src = "https://cdn.jsdelivr.net/npm/chart.js"
+    script.src = chrome.runtime.getURL("assets/chart.js")
     script.onload = () => {
       console.log("Trackly: Chart.js loaded, rendering chart")
       createChart()

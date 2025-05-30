@@ -70,6 +70,64 @@ if (window.location.hostname.includes("amazon.com")) {
   console.log("Trackly: Not on Amazon page")
 }
 
+async function getKeys() {
+  return await chrome.storage.local.get([
+    "supabaseUrl",
+    "supabaseKey",
+    "keepaKey",
+    "openAIApiKey",
+    "firebaseApiKey",
+    "firebaseAppId",
+    "firebaseAuthDomain",
+    "firebaseMeasurementId",
+    "firebaseMessagingSenderId",
+    "firebaseProjectId",
+    "firebaseStorageBucketId"
+  ])
+}
+
+async function callOpenAI(asin, title, price, priceHistory) {
+  const prompt = `The user is thinking about purchasing the product with Amazon ASIN: ${asin}. 
+    The title of this product is "${title}". The product is currently listed for sale at $${price}.
+    Here is the last 12 month price history for this product: ${JSON.stringify(priceHistory)}.
+
+    Analyze this data as an Expert Shopper and give me your recommendation in 20 words or less to describe if this is the right time to buy or shoud the user wait to make a purchase.
+    `
+
+  try {
+    const keys = await getKeys();
+    console.log("Trackly: AI Prompt ", prompt)
+    console.log("Trackly: AI Prompt Runing with A{I Key ", keys.openAIApiKey)
+
+    if (!keys.openAIApiKey) throw new Error("OpenAI key missing");
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${keys.openAIApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Trackly: OpenAI response error:", errorText);
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("Trackly: AI Response", data);
+    return data.choices?.[0]?.message?.content || "No AI recommendation available.";
+  } catch (err) {
+    console.error("Trackly: AI call failed", err);
+    return "No AI recommendation available. Try again later or rely on price history.";
+  }
+}
+
 // Function to extract product details
 function extractProductDetails(asin) {
   console.log("Trackly: Extracting product details for ASIN:", asin)
@@ -250,7 +308,7 @@ function toggleOverlay(asin) {
       const productDetails = extractProductDetails(asin)
 
       // Try fetching cached price history first
-      chrome.runtime.sendMessage({ type: "GET_PRICE_HISTORY", asin }, (response) => {
+      chrome.runtime.sendMessage({ type: "GET_PRICE_HISTORY", asin }, async (response) => {
         console.log("Trackly: Fetching Cached price history ", response)
 
         if (response && response.success) {
@@ -258,6 +316,16 @@ function toggleOverlay(asin) {
           console.log("Trackly: Cached price history added to productDetails")
         } else {
           console.warn("Trackly: No cached price history found")
+        }
+
+        console.log("Trackly: Before calling AI ")
+
+        const aiRecommendation = await callOpenAI(asin, productDetails.title, productDetails.price, productDetails.priceHistory)
+        console.log("Trackly:  AI Recommendation ", aiRecommendation)
+
+
+        if (aiRecommendation) {
+          productDetails.buyRecommendation = aiRecommendation
         }
 
         setTimeout(() => {

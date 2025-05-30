@@ -234,7 +234,7 @@ function renderActivityChart(events) {
 document.addEventListener("DOMContentLoaded", () => {
   // Load Chart.js
   const script = document.createElement("script")
-  script.src = "https://cdn.jsdelivr.net/npm/chart.js"
+  script.src = chrome.runtime.getURL("assets/chart.js")
   script.onload = () => {
     console.log("Chart.js loaded")
     initDashboard()
