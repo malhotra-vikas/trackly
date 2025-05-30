@@ -367,7 +367,7 @@ function setupEventListeners() {
 
     if (navigator.share) {
       navigator.share({
-        title: "Trackly Price Alert",
+        title: "Dottie Price Alert",
         text: text,
         url: url,
       })

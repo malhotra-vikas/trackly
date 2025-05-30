@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Trackly - Smart Shopping Assistant",
+  "name": "Dottie - Smart Shopping Assistant",
   "version": "1.0.8",
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
