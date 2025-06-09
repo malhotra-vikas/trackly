@@ -1,52 +1,126 @@
-// signin.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-    getAuth,
-    signInWithPopup,
-    GoogleAuthProvider,
-    FacebookAuthProvider,
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
 async function getFirebaseSecrets() {
     const { fetchSecrets } = globalThis.tracklyKeys;
     const secrets = await fetchSecrets();
     return secrets.firebaseConfig;
 }
 
-async function initFirebaseAuth() {
+
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const firebaseConfig = await getFirebaseSecrets();
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // Initialize Firebase
+        const firebaseService = window.firebaseService;
+        if (!firebaseService) {
+            throw new Error('Firebase service not available');
+        }
 
-        document.getElementById("google-signin").addEventListener("click", async () => {
-            const provider = new GoogleAuthProvider();
+        await firebaseService.initializeFirebase();
+        console.log('Firebase ready');
+
+        // Get form elements
+        const signinForm = document.getElementById('signin-form');
+        const signupForm = document.getElementById('signup-form');
+        const showSignupLink = document.getElementById('show-signup');
+        const showSigninLink = document.getElementById('show-signin');
+
+        // Debug logging
+        console.log('Forms found:', {
+            signinForm: !!signinForm,
+            signupForm: !!signupForm,
+            showSignupLink: !!showSignupLink,
+            showSigninLink: !!showSigninLink
+        });
+
+        // Toggle form visibility
+        showSignupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            signinForm.style.display = 'none';
+            signupForm.style.display = 'block';
+        });
+
+        showSigninLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupForm.style.display = 'none';
+            signinForm.style.display = 'block';
+        });
+
+        // Handle sign up
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const button = document.getElementById('signup-button');
+            const errorElement = document.getElementById('signup-error');
+            
             try {
-                const result = await signInWithPopup(auth, provider);
-                console.log("Google sign-in success:", result.user);
-                chrome.runtime.sendMessage({ type: "USER_LOGGED_IN", user: result.user });
-                window.close();
-            } catch (err) {
-                console.error("Google sign-in failed:", err);
+                button.classList.add('loading');
+                button.disabled = true;
+                
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+
+                console.log('Starting sign up process');
+                const result = await firebaseService.signUp(email, password);
+                
+                if (result.success) {
+                    console.log('Sign up successful');
+                    await chrome.storage.local.set({
+                        user: {
+                            uid: result.user.uid,
+                            email: result.user.email
+                        }
+                    });
+                    window.close();
+                } else {
+                    errorElement.textContent = result.error;
+                }
+            } catch (error) {
+                console.error('Sign up error:', error);
+                errorElement.textContent = error.message;
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
             }
         });
 
-        document.getElementById("facebook-signin").addEventListener("click", async () => {
-            const provider = new FacebookAuthProvider();
+        // Handle sign in
+        signinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const button = document.getElementById('signin-button');
+            const errorElement = document.getElementById('signin-error');
+            
             try {
-                const result = await signInWithPopup(auth, provider);
-                console.log("Facebook sign-in success:", result.user);
-                chrome.runtime.sendMessage({ type: "USER_LOGGED_IN", user: result.user });
-                window.close();
-            } catch (err) {
-                console.error("Facebook sign-in failed:", err);
+                button.classList.add('loading');
+                button.disabled = true;
+                
+                const email = document.getElementById('signin-email').value;
+                const password = document.getElementById('signin-password').value;
+
+                console.log('Starting sign in process');
+                const result = await firebaseService.signIn(email, password);
+                
+                if (result.success) {
+                    console.log('Sign in successful');
+                    await chrome.storage.local.set({
+                        user: {
+                            uid: result.user.uid,
+                            email: result.user.email
+                        }
+                    });
+                    window.close();
+                } else {
+                    errorElement.textContent = result.error;
+                }
+            } catch (error) {
+                console.error('Sign in error:', error);
+                errorElement.textContent = error.message;
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
             }
         });
-
-        console.log("Trackly: Firebase Auth initialized successfully");
     } catch (error) {
-        console.error("Trackly: Failed to initialize Firebase Auth:", error);
+        console.error('Initialization error:', error);
+        const errorElement = document.getElementById('signin-error');
+        if (errorElement) {
+            errorElement.textContent = `Service unavailable: ${error.message}`;
+        }
     }
-}
-
-document.addEventListener("DOMContentLoaded", initFirebaseAuth);
+});

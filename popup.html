@@ -115,6 +115,20 @@
       flex-direction: column;
       gap: 12px;
     }
+
+    .user-info {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .user-info .user-email {
+      font-size: 0.875rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
   </style>
 </head>
 
@@ -147,8 +161,20 @@
         Sign In / Sign Up
       </button>
     </div>
+
+    <div class="user-info" style="display: none;">
+      <span class="user-email"></span>
+      <button id="signout-button" class="btn">Sign Out</button>
+    </div>
   </div>
 
+  <!-- Load Firebase scripts first -->
+  <script src="firebase-app.js"></script>
+  <script src="firebase-auth.js"></script>
+  <script src="key-management.js"></script>
+  <script src="firebase-service.js"></script>
+
+  <!-- Load your app scripts after Firebase -->
   <script src="popup.js"></script>
 
 </body>

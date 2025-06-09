@@ -36,18 +36,14 @@ async function saveKeys(keys) {
 // Function to get keys
 async function getKeys() {
     return await chrome.storage.local.get([
-        "supabaseUrl",
-        "supabaseKey",
-        "keepaKey",
         "firebaseApiKey",
         "firebaseAuthDomain",
         "firebaseProjectId",
         "firebaseAppId",
         "firebaseMeasurementId",
         "firebaseMessagingSenderId",
-        "firebaseStorageBucketId",
-        "openaiApiKey"
-    ])
+        "firebaseStorageBucketId"
+    ]);
 }
 
 // Function to fetch secrets from Lambda
@@ -152,11 +148,41 @@ async function initializeKeys() {
     }
 }
 
-// Export functions to globalThis (works in both service worker and regular contexts)
-globalThis.tracklyKeys = {
-    checkKeys,
-    saveKeys,
-    getKeys,
-    fetchSecrets,
-    initializeKeys,
-}
+// Expose to global scope
+const tracklyKeys = {
+    async getKeys() {
+        return new Promise((resolve) => {
+            chrome.storage.local.get([
+                "firebaseApiKey",
+                "firebaseAuthDomain",
+                "firebaseProjectId",
+                "firebaseAppId",
+                "firebaseMeasurementId",
+                "firebaseMessagingSenderId",
+                "firebaseStorageBucketId"
+            ], resolve);
+        });
+    },
+
+    async fetchSecrets() {
+        try {
+            const keys = await this.getKeys();
+            return {
+                firebaseConfig: {
+                    apiKey: keys.firebaseApiKey,
+                    authDomain: keys.firebaseAuthDomain,
+                    projectId: keys.firebaseProjectId,
+                    storageBucket: keys.firebaseStorageBucketId,
+                    messagingSenderId: keys.firebaseMessagingSenderId,
+                    appId: keys.firebaseAppId
+                }
+            };
+        } catch (error) {
+            console.error('Error fetching secrets:', error);
+            throw error;
+        }
+    }
+};
+
+// Export to global scope
+window.tracklyKeys = tracklyKeys;

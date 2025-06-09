@@ -1,18 +1,65 @@
 document.addEventListener("DOMContentLoaded", async () => {
   // Load watchlist
-  const watchlistContainer = document.getElementById("watchlist-container")
-
+  const watchlistContainer = document.getElementById("watchlist-container");
   const amazonBtn = document.getElementById("amazon-button");
-  const signinBtn = document.getElementById("signin-button");
+  const signInButton = document.getElementById('signin-button');
+  const userInfo = document.querySelector('.user-info');
+  const userEmail = document.querySelector('.user-email');
+  const signoutButton = document.getElementById('signout-button');
 
-  amazonBtn?.addEventListener("click", () => {
-    chrome.tabs.create({ url: "https://www.amazon.com" });
-  });
+  // Initialize Firebase first
+  try {
+    const firebaseService = window.firebaseService;
+    if (!firebaseService) {
+      throw new Error('Firebase service not available');
+    }
+    await firebaseService.initializeFirebase();
+    console.log('Firebase initialized in popup');
 
-  signinBtn?.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ type: "OPEN_SIGNIN" });
-  });
+    amazonBtn?.addEventListener("click", () => {
+      chrome.tabs.create({ url: "https://www.amazon.com" });
+    });
 
+    // Check user state after Firebase is initialized
+    chrome.storage.local.get('user', (data) => {
+      console.log('User data:', data.user);
+      if (data.user) {
+        // User is signed in
+        signInButton.style.display = 'none';
+        userInfo.style.display = 'flex';
+        userEmail.textContent = data.user.email;
+        
+        // Handle sign out
+        signoutButton.addEventListener('click', async () => {
+          try {
+            await firebaseService.signOut();
+            await chrome.storage.local.remove('user');
+            window.location.reload();
+          } catch (error) {
+            console.error('Sign out error:', error);
+          }
+        });
+      } else {
+        // User is not signed in
+        signInButton.style.display = 'block';
+        userInfo.style.display = 'none';
+        
+        signInButton.addEventListener('click', () => {
+          chrome.windows.create({
+            url: 'signin.html',
+            type: 'popup',
+            width: 400,
+            height: 600,
+            left: screen.width/2 - 200,
+            top: screen.height/2 - 300
+          });
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Popup initialization error:', error);
+    // Handle initialization error (maybe show error state in UI)
+  }
 
   // Handle settings
   const notificationToggle = document.getElementById("notification-toggle")
