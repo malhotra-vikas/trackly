@@ -87,12 +87,25 @@ async function getKeys() {
 }
 
 async function callOpenAI(asin, title, price, priceHistory) {
+  const lowest = Math.min(...priceHistory).toFixed(2);
+  const highest = Math.max(...priceHistory).toFixed(2);
+
   const prompt = `The user is thinking about purchasing the product with Amazon ASIN: ${asin}. 
     The title of this product is "${title}". The product is currently listed for sale at $${price}.
     Here is the last 12 month price history for this product: ${JSON.stringify(priceHistory)}.
+    In the last 12 months, the lowest price for the item is $${lowest}.
+    In the last 12 months, the higest price for the item is $${highest}.
+    
+    Deal Signal is Green if the current price is ≤ 10% above the lowest.
+    Deal Signal is Yellow if the current proce is > 10% above the lowest but ≤ 70% of the highest
+    Deal Signal is Red if the current price is > 70% of the highest
     
     Analyze this data as an Expert Shopper and give me your recommendation in 20 words or less to describe if this is the right time to buy or shoud the user wait to make a purchase.
     The recomemndation tone needs to be Calm, smart, and clear — no jargon, no hype, no hyperbole.
+    Some sample recommendations are "Current Proce seems great, recommend buying", 
+    "Current price seems high, considering the recent proce choppiness and the last 12 months of lowest and highest prices",
+    "Current price seems very high. Recommend waiting, unless you need this now", etc
+    
     `
 
   try {

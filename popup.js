@@ -13,17 +13,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     chrome.runtime.sendMessage({ type: "OPEN_SIGNIN" });
   });
 
-  try {
-    const response = await window.chrome.runtime.sendMessage({ type: "GET_WATCHLIST" })
-
-    if (response.success) {
-      renderWatchlist(response.watchlist)
-    } else {
-      watchlistContainer.innerHTML = `<p class="error">Error loading watchlist: ${response.error}</p>`
-    }
-  } catch (error) {
-    watchlistContainer.innerHTML = `<p class="error">Error: ${error.message}</p>`
-  }
 
   // Handle settings
   const notificationToggle = document.getElementById("notification-toggle")

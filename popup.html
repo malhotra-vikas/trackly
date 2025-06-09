@@ -4,44 +4,150 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dottie</title>
+  <title>Dottie – Smart Shopping Assistant</title>
+  <!-- Professional font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg: #F9FAFB;
+      --text: #374151;
+      --radius: 6px;
+      --transition: 150ms ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
-      width: 300px;
-      height: 220px;
-      padding: 20px;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      width: 320px;
+      height: 260px;
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .card {
+      background: #fff;
+      width: 100%;
+      margin-top: 20px;
+      padding: 24px 20px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .logo__dot {
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
     }
 
     h1 {
-      color: #4F46E5;
-      margin-bottom: 10px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0;
     }
 
     p {
-      color: #666;
-      margin-bottom: 15px;
+      font-size: 0.875rem;
+      color: var(--text);
+      margin: 0 0 20px 0;
+      text-align: center;
+      line-height: 1.4;
     }
 
-    button {
-      background-color: #4F46E5;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 10px;
+    .btn {
       width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      background: var(--primary-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
   </style>
 </head>
 
 <body>
-  <h1>Dottie</h1>
-  <p>Smart Shopping Assistant</p>
-  <p>Visit Amazon to start tracking products</p>
-  <button id="amazon-button">Go to Amazon</button>
-  <!--button id="signin-button">Sign Up / Sign In</button-->
+  <div class="card">
+    <div class="logo">
+      <img src="icons/dotti-icon-48.png" alt="Dotti Logo" class="logo-img" />
+    </div>
+    <p>Dottie is your Personal Smart Shopping Assistant to help you track prices and save money.</p>
+
+    <div class="actions">
+      <!-- Track product on Amazon -->
+      <button id="amazon-button" class="btn">
+        <!-- Amazon icon -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M6.2 12.1c.2 1.2 1.5 1.9 3.6 2 1.6 0 3.2-.4 4.4-1.2v2.6c-1.3.7-3 1.1-4.7 1.1-4 0-6.9-2.1-6.9-5.5 0-2.6 1.7-4.4 4.9-5.4 3.5-1 8.1-.6 8.1-3.3 0-1.4-1.3-2.3-3.6-2.3-2.5 0-4.6.9-5.4 2.2l-2.4-.7C3.2 2.4 5.9 1 9.2 1c4.1 0 6.3 1.9 6.3 4.7v8.4c0 1.1.6 1.6 1.3 1.6.4 0 .8-.1 1-.2l.3 2c-.4.2-1.2.4-2.3.4-2.1 0-3.3-1-3.3-3.2v-.7c-1 1.3-2.9 2.2-5.3 2.2-3.5 0-6.2-2-6.2-5.2 0-2.7 1.8-4.4 5-5.3 3.4-1 7.9-.7 7.9-3.4 0-1.2-1-2-2.9-2-2.4 0-4.3.9-5.1 2.1L6.2 12.1z" />
+        </svg>
+        Track on Amazon
+      </button>
+
+      <!-- Sign Up / Sign In -->
+      <button id="signin-button" class="btn"
+        style="background:#fff;color:var(--primary);border:1px solid var(--primary);">
+        <!-- User icon -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
+        </svg>
+        Sign In / Sign Up
+      </button>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 

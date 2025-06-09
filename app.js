@@ -71,19 +71,23 @@ window.addEventListener("message", async (event) => {
   }
 })
 
-// ≤ 5% above lowest	- Green
-// Between 5% above lowest and 80% of highest	- Yellow
-// Close to or above highest	
+
+//✅ Green if the current price is ≤ 10% above the lowest
+
+//✅ Yellow if it's > 10% above the lowest but ≤ 70% of the highest
+
+//❌ Red if it's > 70% of the highest
+
 function computeDealSignal(currentPrice, lowestPrice, highestPrice) {
-  const nearLowestThreshold = lowestPrice * 1.05
-  const nearHighestThreshold = highestPrice * 0.8
+  const nearLowestThreshold = lowestPrice * 1.10;  // 10% above lowest
+  const nearHighestThreshold = highestPrice * 0.70; // 70% of highest
 
   if (currentPrice <= nearLowestThreshold) {
-    return "green"
+    return "green";  // Best deal
   } else if (currentPrice <= nearHighestThreshold) {
-    return "yellow"
+    return "yellow"; // Decent deal
   } else {
-    return "red"
+    return "red";    // Poor deal
   }
 }
 
@@ -297,11 +301,11 @@ function updateWatchlistButton() {
   const watchlistButton = document.getElementById("watchlist-button")
 
   if (isInWatchlist) {
-    watchlistButton.textContent = "Remove from Watchlist"
-    watchlistButton.classList.add("in-watchlist")
+//    watchlistButton.textContent = "Remove from Watchlist"
+//    watchlistButton.classList.add("in-watchlist")
   } else {
-    watchlistButton.textContent = "Add to Watchlist"
-    watchlistButton.classList.remove("in-watchlist")
+//    watchlistButton.textContent = "Add to Watchlist"
+//    watchlistButton.classList.remove("in-watchlist")
   }
 }
 
