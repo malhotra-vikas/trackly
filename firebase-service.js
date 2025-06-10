@@ -80,7 +80,11 @@ class FirebaseService {
     }
     try {
       const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
-      return { success: true, user: userCredential.user };
+      const user = userCredential.user;
+
+      await window.tracklySupabase?.createUserAfterSignup(user.uid);
+
+      return { success: true, user: user };
     } catch (error) {
       return { success: false, error: error.message };
     }

@@ -1,9 +1,9 @@
-
 // App script for Trackly
 console.log("Trackly: App script loaded")
 
 let productData = null
-let isInWatchlist = false
+let isInWatchlistItem = false
+let firebaseInitialized = false
 
 // Listen for messages from the content script
 window.addEventListener("message", async (event) => {
@@ -50,21 +50,47 @@ window.addEventListener("message", async (event) => {
           productData = {
             ...productDetails,
             ...response.data,
-          }
-
-          // Check if product is in watchlist
-          chrome.runtime.sendMessage({ type: "GET_WATCHLIST" }, (watchlistResponse) => {
-            if (watchlistResponse && watchlistResponse.success) {
-              isInWatchlist = watchlistResponse.watchlist.some((item) => item.asin === productData.asin)
-            }
+          }          
             renderProductData()
-          })
         } else {
           console.error("Trackly: Failed to get price history:", response)
           showError(`Failed to get price history: ${response ? response.error : "No response"}`)
         }
       },
     )
+
+    const firebaseService = window.firebaseService;
+    if (!firebaseService) {
+      throw new Error('Firebase service not available');
+    }
+    if (!firebaseInitialized) {
+      await firebaseService.initializeFirebase();
+      firebaseInitialized = true;
+
+      // Wait for auth state to be ready
+      await new Promise((resolve) => {
+        const unsubscribe = firebaseService.auth.onAuthStateChanged((user) => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+    }
+    const user = await firebaseService.getCurrentUser();
+    if (user) {
+      if (user) {
+        // Check watchlist status
+        const result = await window.tracklySupabase.isInWatchlist(
+          user.uid,
+          productData?.asin
+        );
+        if (result.success) {
+          isInWatchlistItem = result.isInWatchlist;
+          updateWatchlistButton();
+        } else {
+          console.error('Error checking watchlist status:', result.error);
+        }
+      }
+    }
   } catch (error) {
     console.error("Trackly: Error in message handler:", error)
     showError(`Error: ${error.message}`)
@@ -298,15 +324,109 @@ function createChart() {
 
 
 function updateWatchlistButton() {
-  const watchlistButton = document.getElementById("watchlist-button")
-
-  if (isInWatchlist) {
-//    watchlistButton.textContent = "Remove from Watchlist"
-//    watchlistButton.classList.add("in-watchlist")
+  const heartIcon = document.querySelector('.favorite-icon');
+  const heartPath = heartIcon?.querySelector('path');
+  
+  if (isInWatchlistItem) {  
+    heartIcon?.classList.add('active');
+    if (heartPath) {
+      heartPath.style.fill = '#EF4444';
+      heartPath.style.stroke = '#EF4444';
+    }
   } else {
-//    watchlistButton.textContent = "Add to Watchlist"
-//    watchlistButton.classList.remove("in-watchlist")
+    heartIcon?.classList.remove('active');
+    if (heartPath) {
+      heartPath.style.fill = 'none';
+      heartPath.style.stroke = '#374151';
+    }
   }
+}
+
+function openSignInWindow() {
+    return new Promise((resolve) => {
+        const width = 400;
+        const height = 600;
+        const left = screen.width/2 - width/2;
+        const top = screen.height/2 - height/2;
+
+        chrome.windows.create({
+            url: chrome.runtime.getURL('signin.html'),
+            type: 'popup',
+            width: width,
+            height: height,
+            left: left,
+            top: top
+        });
+
+        // Listen for auth state change
+        const unsubscribe = window.firebaseService.auth.onAuthStateChanged((user) => {
+            if (user) {
+                unsubscribe();
+                resolve(user);
+            }
+        });
+    });
+}
+
+async function handleWatchlistClick() {
+    try {
+        const firebaseService = window.firebaseService;
+        if (!firebaseService) {
+            throw new Error('Firebase service not available');
+        }
+
+        // Initialize Firebase if not already initialized
+        if (!firebaseInitialized) {
+            await firebaseService.initializeFirebase();
+            firebaseInitialized = true;
+        }
+
+        let user = await firebaseService.getCurrentUser();
+        
+        if (!user) {
+            showToast('Please sign in to use the watchlist', 'warning');
+            // Wait for user to sign in
+            user = await openSignInWindow();
+            if (!user) return;
+            
+            // Refresh product data after login
+            await renderProductData();
+        }
+
+        if (isInWatchlistItem) {
+            const response = await window.tracklySupabase.removeFromWatchlist(
+                user.uid,
+                productData.asin
+            );
+            if (response && response.success) {
+                isInWatchlistItem = false;
+                updateWatchlistButton();
+                showToast('Removed from watchlist');
+            }
+        } else {
+            const product = {
+                asin: productData.asin,
+                title: productData.title,
+                currentPrice: productData.price,
+                imageUrl: productData.imageUrl,
+                dealSignal: productData.dealSignal,
+                url: productData.url
+            };
+
+            const response = await window.tracklySupabase.addToWatchlist(
+                user.uid,
+                product
+            );
+            if (response && response.success) {
+                isInWatchlistItem = true;
+                updateWatchlistButton();
+                showToast('Added to watchlist');
+            }
+        }
+    } catch (error) {
+        console.error("Error updating watchlist:", error);
+        showToast(error.message, 'error');
+    }
 }
 
 function setupEventListeners() {
@@ -318,76 +438,33 @@ function setupEventListeners() {
   })
 
   // Watchlist button
-  document.getElementById("watchlist-button").addEventListener("click", async () => {
-    console.log("Trackly: Watchlist button clicked")
-
-    try {
-      if (isInWatchlist) {
-        // Remove from watchlist
-        chrome.runtime.sendMessage(
-          {
-            type: "REMOVE_FROM_WATCHLIST",
-            asin: productData.asin,
-          },
-          (response) => {
-            if (response && response.success) {
-              isInWatchlist = false
-              updateWatchlistButton()
-            }
-          },
-        )
-      } else {
-        // Add to watchlist
-        chrome.runtime.sendMessage(
-          {
-            type: "ADD_TO_WATCHLIST",
-            product: {
-              asin: productData.asin,
-              title: productData.title,
-              currentPrice: productData.currentPrice,
-              imageUrl: productData.imageUrl,
-              dealSignal: productData.dealSignal,
-              url: productData.url,
-            },
-          },
-          (response) => {
-            if (response && response.success) {
-              isInWatchlist = true
-              updateWatchlistButton()
-            }
-          },
-        )
-      }
-    } catch (error) {
-      console.error("Error updating watchlist:", error)
-    }
-  })
+  document.getElementById("watchlist-button").addEventListener("click", handleWatchlistClick)
 
   // Share button
-  document.getElementById("share-button").addEventListener("click", () => {
-    console.log("Trackly: Share button clicked")
-    const text = `Check out this deal on ${productData.title}! Current price: $${productData.currentPrice.toFixed(2)}`
-    const url = productData.url
+  // document.getElementById("share-button").addEventListener("click", () => {
+  //   console.log("Trackly: Share button clicked")
+  //   const text = `Check out this deal on ${productData.title}! Current price: $${productData.currentPrice.toFixed(2)}`
+  //   const url = productData.url
 
-    if (navigator.share) {
-      navigator.share({
-        title: "Dottie Price Alert",
-        text: text,
-        url: url,
-      })
-    } else {
-      // Fallback to clipboard
-      const shareText = `${text} ${url}`
-      navigator.clipboard
-        .writeText(shareText)
-        .then(() => {
-          alert("Link copied to clipboard!")
-        })
-        .catch((err) => {
-          console.error("Failed to copy: ", err)
-        })
-    }
-  })
+  //   if (navigator.share) {
+  //     navigator.share({
+  //       title: "Dottie Price Alert",
+  //       text: text,
+  //       url: url,
+  //     })
+  //   } else {
+  //     // Fallback to clipboard
+  //     const shareText = `${text} ${url}`
+  //     navigator.clipboard
+  //       .writeText(shareText)
+  //       .then(() => {
+  //         alert("Link copied to clipboard!")
+  //       })
+  //       .catch((err) => {
+  //         console.error("Failed to copy: ", err)
+  //       })
+  //   }
+  // })
 }
 
 function showError(message) {
@@ -416,3 +493,30 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 console.log("Trackly: App script ready")
+
+function showToast(message, type = 'success') {
+    const colors = {
+        success: '#10B981',
+        error: '#EF4444'
+    };
+
+    Toastify({
+        text: message,
+        duration: 3000,
+        gravity: "bottom",
+        position: "right",
+        close: true,
+        style: {
+            background: colors[type],
+            borderRadius: "8px",
+            fontSize: "14px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px"
+        },
+        className: "trackly-toast",
+        onClick: function() {
+            this.hideToast();
+        }
+    }).showToast();
+}

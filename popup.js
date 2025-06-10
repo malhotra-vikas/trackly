@@ -65,20 +65,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const notificationToggle = document.getElementById("notification-toggle")
 
   // Load saved settings
-  window.chrome.storage.local.get("settings", (data) => {
-    if (data.settings) {
-      notificationToggle.checked = data.settings.notifications
-    }
-  })
+  // window.chrome.storage.local.get("settings", (data) => {
+  //   if (data.settings) {
+  //     notificationToggle.checked = data.settings.notifications
+  //   }
+  // })
 
-  // Save settings when changed
-  notificationToggle.addEventListener("change", () => {
-    window.chrome.storage.local.set({
-      settings: {
-        notifications: notificationToggle.checked,
-      },
-    })
-  })
+  // // Save settings when changed
+  // notificationToggle.addEventListener("change", () => {
+  //   window.chrome.storage.local.set({
+  //     settings: {
+  //       notifications: notificationToggle.checked,
+  //     },
+  //   })
+  // })
 
   // Add analytics button handler
   document.getElementById("view-analytics").addEventListener("click", () => {
