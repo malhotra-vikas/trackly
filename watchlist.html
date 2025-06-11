@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Your Watchlist | Trackly</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="watchlist.css">
+    <link rel="stylesheet" href="toastify.min.css">
+    <script src="toastify.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo-section">
+                    <img src="icons/dotti-icon-48.png" alt="Trackly">
+                    <h1>Dottie Watchlist</h1>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="loading" class="loading-state" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Loading your watchlist...</p>
+        </div>
+
+        <div id="watchlist-grid" class="product-grid"></div>
+
+        <div class="pagination">
+            <button id="prev-page" class="btn-pagination">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                        fill="currentColor" />
+                </svg>
+                Previous
+            </button>
+            <span id="page-info" class="page-info">Page 1 of 1</span>
+            <button id="next-page" class="btn-pagination">
+                Next
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        fill="currentColor" />
+                </svg>
+            </button>
+        </div>
+    </main>
+
+    <script src="firebase-app.js"></script>
+    <script src="firebase-auth.js"></script>
+    <script src="firebase-service.js"></script>
+    <script src="supabase.min.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="watchlist.js"></script>
+</body>
+
+</html>

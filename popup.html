@@ -129,6 +129,18 @@
       color: var(--text);
       margin-bottom: 8px;
     }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-outline:hover,
+    .btn-outline:focus-visible {
+      background: var(--primary);
+      color: #fff;
+    }
   </style>
 </head>
 
@@ -151,17 +163,23 @@
       </button>
 
       <!-- Sign Up / Sign In -->
-      <button id="signin-button" class="btn"
-        style="background:#fff;color:var(--primary);border:1px solid var(--primary);">
+      <button id="signin-button" class="btn btn-outline">
         <!-- User icon -->
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path
             d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
         </svg>
-        Sign In / Sign Up
+        Sign In / Sign Up
+      </button>
+
+      <!-- Watchlist button (hidden by default) -->
+      <button id="watchlist-view-btn" class="btn btn-outline" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path fill="currentColor" d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/>
+        </svg>
+        View Watchlist
       </button>
     </div>
-
     <div class="user-info" style="display: none;">
       <span class="user-email"></span>
       <button id="signout-button" class="btn">Sign Out</button>

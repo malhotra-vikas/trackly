@@ -69,7 +69,10 @@
         "chart.umd.js",
         "app.css",
         "firebase-service.js",
-        "supsupabase-client.js"
+        "supsupabase-client.js",
+        "watchlist.html",
+        "watchlist.css",
+        "watchlist.js"
       ],
       "matches": [
         "https://*.amazon.com/*"

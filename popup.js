@@ -20,14 +20,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       chrome.tabs.create({ url: "https://www.amazon.com" });
     });
 
+    const watchlistButton = document.getElementById('watchlist-view-btn');
+
     // Check user state after Firebase is initialized
     chrome.storage.local.get('user', (data) => {
       console.log('User data:', data.user);
       if (data.user) {
         // User is signed in
         signInButton.style.display = 'none';
+        watchlistButton.style.display = 'flex';
         userInfo.style.display = 'flex';
         userEmail.textContent = data.user.email;
+        watchlistButton.style.display = 'flex';
         
         // Handle sign out
         signoutButton.addEventListener('click', async () => {
@@ -41,8 +45,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       } else {
         // User is not signed in
-        signInButton.style.display = 'block';
+        signInButton.style.display = 'flex';
+        watchlistButton.style.display = 'none';
         userInfo.style.display = 'none';
+         watchlistButton.style.display = 'none';
         
         signInButton.addEventListener('click', () => {
           chrome.windows.create({
@@ -55,6 +61,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
         });
       }
+    });
+
+    // Add watchlist button click handler
+    watchlistButton.addEventListener('click', () => {
+      chrome.tabs.create({ 
+          url: chrome.runtime.getURL('watchlist.html')
+      });
     });
   } catch (error) {
     console.error('Popup initialization error:', error);
@@ -84,6 +97,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("view-analytics").addEventListener("click", () => {
     window.chrome.tabs.create({ url: window.chrome.runtime.getURL("analytics.html") })
   })
+   document.getElementById("watchlist-view-btn").addEventListener("click", () => {
+      chrome.tabs.create({ 
+          url: chrome.runtime.getURL('watchlist.html')
+      });
+  });
+  
 })
 
 function renderWatchlist(watchlist) {
