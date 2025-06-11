@@ -1,11 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Dottie - Smart Shopping Assistant",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
