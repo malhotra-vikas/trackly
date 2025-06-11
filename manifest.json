@@ -5,9 +5,7 @@
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
     "storage",
-    "tabs",
-    "activeTab",
-    "identity"
+    "tabs"
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
