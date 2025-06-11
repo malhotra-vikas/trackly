@@ -381,11 +381,17 @@ async function fetchPriceHistory(asin) {
       console.log(`Date: ${entry.date}, Amazon Price: ${entry.amazonPrice ?? "N/A"}, Marketplace Price: ${entry.marketplacePrice ?? "N/A"}`);
     });
 
-    // Cache it
-    await setToStorage(cacheKey, {
-      timestamp: Date.now(),
-      data: priceHistory,
-    });
+    // Only cache if there is data
+    if (priceHistory.length > 0) {
+      console.warn("Caching price history data.");
+
+      await setToStorage(cacheKey, {
+        timestamp: Date.now(),
+        data: priceHistory,
+      });
+    } else {
+      console.warn("⚠️ No price history data to cache.");
+    }
 
     return priceHistory
   } catch (error) {

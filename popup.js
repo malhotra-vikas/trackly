@@ -24,19 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   })
 
-  // Save settings when changed
-  notificationToggle.addEventListener("change", () => {
-    window.chrome.storage.local.set({
-      settings: {
-        notifications: notificationToggle.checked,
-      },
-    })
-  })
 
-  // Add analytics button handler
-  document.getElementById("view-analytics").addEventListener("click", () => {
-    window.chrome.tabs.create({ url: window.chrome.runtime.getURL("analytics.html") })
-  })
 })
 
 function renderWatchlist(watchlist) {

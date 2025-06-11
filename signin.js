@@ -1,12 +1,4 @@
 // signin.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import {
-    getAuth,
-    signInWithPopup,
-    GoogleAuthProvider,
-    FacebookAuthProvider,
-} from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
 async function getFirebaseSecrets() {
     const { fetchSecrets } = globalThis.tracklyKeys;
     const secrets = await fetchSecrets();
