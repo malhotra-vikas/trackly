@@ -10,7 +10,8 @@ zip -r dottie-extension.zip . \
   -x "*.zip" \
   -x "node_modules/*" \
   -x "dist/*" \
-  -x "README.md"
+  -x "README.md" \
+  -x ".git/*"
 
 
 echo "✅ dottie-extension.zip created successfully."
