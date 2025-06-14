@@ -273,7 +273,11 @@ async function createUserAfterSignup(firebaseUid) {
         const supabase = await getSupabaseClient();
         if (!supabase) {
             throw new Error('Supabase client not initialized');
-        }        // Check if user already exists
+        }        
+        console.log("supabase client created ", supabase);
+        console.log("supabase client created for URL ", supabase.url);
+        
+        // Check if user already exists
         const { data: existingUser } = await supabase
             .from('users')
             .select('id')
@@ -296,7 +300,10 @@ async function createUserAfterSignup(firebaseUid) {
             .select('id')
             .single();
 
-        if (error) throw error;
+        if (error) { 
+          console.log('Error in Supabase:', error);
+          throw error;
+        }
 
         console.log('User created in Supabase:', data.id);
         return data.id;

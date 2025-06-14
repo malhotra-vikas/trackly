@@ -42,7 +42,11 @@ async function getKeys() {
         "firebaseAppId",
         "firebaseMeasurementId",
         "firebaseMessagingSenderId",
-        "firebaseStorageBucketId"
+        "firebaseStorageBucketId",
+        "openaiApiKey",
+        "supabaseUrl",
+        "supabaseKey",
+        "keepaKey"
     ]);
 }
 
@@ -159,7 +163,11 @@ const tracklyKeys = {
                 "firebaseAppId",
                 "firebaseMeasurementId",
                 "firebaseMessagingSenderId",
-                "firebaseStorageBucketId"
+                "firebaseStorageBucketId",
+                "openaiApiKey",
+                "supabaseUrl",
+                "supabaseKey",
+                "keepaKey"
             ], resolve);
         });
     },

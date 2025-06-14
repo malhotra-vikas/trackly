@@ -7,15 +7,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   const userEmail = document.querySelector('.user-email');
   const signoutButton = document.getElementById('signout-button');
 
-  // Initialize Firebase first
+  // Initialize Sppabase and Firebase first
   try {
+    // Wait for Supabase to be ready first
+    const supabaseLite = await window.supabaseLiteReady;
+    console.log("✅ SupabaseLite ready in popup.js:", supabaseLite);
+
+    // Initialize Firebase next
     const firebaseService = window.firebaseService;
     if (!firebaseService) {
       throw new Error('Firebase service not available');
     }
     await firebaseService.initializeFirebase();
-    console.log('Firebase initialized in popup');
+    console.log('✅ Firebase initialized in popup');
 
+    // Add Amazon button event
     amazonBtn?.addEventListener("click", () => {
       chrome.tabs.create({ url: "https://www.amazon.com" });
     });
@@ -40,9 +46,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             await chrome.storage.local.remove('user');
             window.location.reload();
           } catch (error) {
-            console.error('Sign out error:', error);
+            console.error('❌ Sign out error:', error);
           }
         });
+
+        // TODO: Load watchlist here if you wish using supabaseLite.getWatchlist(data.user.uid)
       } else {
         // User is not signed in
         signInButton.style.display = 'flex';
@@ -56,8 +64,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             type: 'popup',
             width: 400,
             height: 600,
-            left: screen.width/2 - 200,
-            top: screen.height/2 - 300
+            left: screen.width / 2 - 200,
+            top: screen.height / 2 - 300
           });
         });
       }
@@ -70,30 +78,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
   } catch (error) {
-    console.error('Popup initialization error:', error);
-    // Handle initialization error (maybe show error state in UI)
+    console.error('❌ Popup initialization error:', error);
   }
 
-  // Handle settings
-  const notificationToggle = document.getElementById("notification-toggle")
+  // Settings toggle (future use)
+  const notificationToggle = document.getElementById("notification-toggle");
 
-  // Load saved settings
-  // window.chrome.storage.local.get("settings", (data) => {
-  //   if (data.settings) {
-  //     notificationToggle.checked = data.settings.notifications
-  //   }
-  // })
-
-  // // Save settings when changed
-  // notificationToggle.addEventListener("change", () => {
-  //   window.chrome.storage.local.set({
-  //     settings: {
-  //       notifications: notificationToggle.checked,
-  //     },
-  //   })
-  // })
-
-  // Add analytics button handler
+  // Analytics button
   document.getElementById("view-analytics").addEventListener("click", () => {
     window.chrome.tabs.create({ url: window.chrome.runtime.getURL("analytics.html") })
   })
@@ -106,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 })
 
 function renderWatchlist(watchlist) {
-  const watchlistContainer = document.getElementById("watchlist-container")
+  const watchlistContainer = document.getElementById("watchlist-container");
 
   if (!watchlist || watchlist.length === 0) {
     watchlistContainer.innerHTML = `
@@ -114,11 +105,11 @@ function renderWatchlist(watchlist) {
         <p>Your watchlist is empty</p>
         <p>Visit Amazon to start tracking products</p>
       </div>
-    `
-    return
+    `;
+    return;
   }
 
-  let html = ""
+  let html = "";
 
   watchlist.forEach((item) => {
     html += `
@@ -133,41 +124,37 @@ function renderWatchlist(watchlist) {
         </div>
         <button class="watchlist-item-remove" data-asin="${item.asin}">×</button>
       </div>
-    `
-  })
+    `;
+  });
 
-  watchlistContainer.innerHTML = html
+  watchlistContainer.innerHTML = html;
 
-  // Add event listeners for remove buttons
   document.querySelectorAll(".watchlist-item-remove").forEach((button) => {
     button.addEventListener("click", async (e) => {
-      e.stopPropagation()
-      const asin = button.getAttribute("data-asin")
+      e.stopPropagation();
+      const asin = button.getAttribute("data-asin");
 
       try {
         await window.chrome.runtime.sendMessage({
           type: "REMOVE_FROM_WATCHLIST",
           asin,
-        })
+        });
 
-        // Remove from DOM
-        document.querySelector(`.watchlist-item[data-asin="${asin}"]`).remove()
+        document.querySelector(`.watchlist-item[data-asin="${asin}"]`).remove();
 
-        // Check if watchlist is now empty
         if (document.querySelectorAll(".watchlist-item").length === 0) {
-          renderWatchlist([])
+          renderWatchlist([]);
         }
       } catch (error) {
-        console.error("Error removing item from watchlist:", error)
+        console.error("Error removing item from watchlist:", error);
       }
-    })
-  })
+    });
+  });
 
-  // Add click event to open product page
   document.querySelectorAll(".watchlist-item").forEach((item) => {
     item.addEventListener("click", () => {
-      const asin = item.getAttribute("data-asin")
-      window.chrome.tabs.create({ url: `https://www.amazon.com/dp/${asin}` })
-    })
-  })
+      const asin = item.getAttribute("data-asin");
+      window.chrome.tabs.create({ url: `https://www.amazon.com/dp/${asin}` });
+    });
+  });
 }

@@ -1,28 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Dottie - Smart Shopping Assistant",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
-    "storage",
-    "tabs",
-    "activeTab",
-    "identity"
+    "storage"
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
-    "https://*.amazon.ca/*",
-    "https://*.amazon.co.uk/*",
-    "https://*.amazon.de/*",
-    "https://*.amazon.fr/*",
-    "https://*.amazon.it/*",
-    "https://*.amazon.es/*",
-    "https://*.amazon.co.jp/*",
-    "https://*.amazon.in/*",
-    "https://*.amazon.com.au/*",
-    "https://*.amazon.com.br/*",
-    "https://*.amazon.com.mx/*",
-    "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/*"
+    "https://pciwvyqxiqhwsxdoagrw.supabase.co/",
+    "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/*",
+    "https://frhtzxqmgycibpzrytcw.supabase.co/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -69,7 +57,11 @@
         "chart.umd.js",
         "app.css",
         "firebase-service.js",
-        "supsupabase-client.js",
+        "supabase-client.js",
+        "firebase-auth.js",
+        "firebase-app.js",
+        "supabase-cdn.js",
+        "supabase.min.js",
         "watchlist.html",
         "watchlist.css",
         "watchlist.js"
@@ -80,6 +72,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.supabase.co https://evpxv92u1l.execute-api.us-east-2.amazonaws.com https://identitytoolkit.googleapis.com https://accounts.google.com https://apis.google.com https://www.googleapis.com https://api.keepa.com"
   }
 }
+

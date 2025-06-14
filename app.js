@@ -413,6 +413,8 @@ async function handleWatchlistClick() {
                 url: productData.url
             };
 
+            console.log("product added to watchlist is ", product)
+
             const response = await window.tracklySupabase.addToWatchlist(
                 user.uid,
                 product
@@ -438,7 +440,8 @@ function setupEventListeners() {
   })
 
   // Watchlist button
-  document.getElementById("watchlist-button").addEventListener("click", handleWatchlistClick)
+  document.getElementById("watchlist-button-heart")?.addEventListener("click", handleWatchlistClick)
+
 
   // Share button
   // document.getElementById("share-button").addEventListener("click", () => {
