@@ -112,7 +112,7 @@ class FirebaseService {
       await this.initSupabase();
 
       // Create SupaBase user too
-      await this.createUser(email, installDate);
+      await this.createUser(extensionUserId, installDate);
       console.log("✅ Supabase user created");
 
       return { success: true, user: user };
@@ -158,16 +158,16 @@ class FirebaseService {
   }
 
   // Adding Supabase actions
-  async createUser(email, installDate = new Date().toISOString()) {
-    console.log("📌 createUser called with:", email);
-    const exists = await this.getUserByExtensionId(email);
+  async createUser(extensionUserId, installDate = new Date().toISOString()) {
+    console.log("📌 createUser called with:", extensionUserId);
+    const exists = await this.getUserByExtensionId(extensionUserId);
     if (exists) {
       console.log("✅ User already exists:", exists);
       return exists;
     }
 
     const payload = {
-      extension_user_id: email,
+      extension_user_id: extensionUserId,
       install_date: installDate,
       last_active: new Date().toISOString()
     };
