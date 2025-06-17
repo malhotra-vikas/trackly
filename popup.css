@@ -174,3 +174,46 @@ body {
 .action-button:hover {
   background-color: #4338ca;
 }
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+}
+
+#signout-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#signout-button:hover {
+  background: #dc2626;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #dc2626;
+  padding: 8px 12px;
+  margin: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #6b7280;
+}

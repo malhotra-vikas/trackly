@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Dottie - Smart Shopping Assistant",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
-    "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/*"
+    "https://pciwvyqxiqhwsxdoagrw.supabase.co/",
+    "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/*",
+    "https://frhtzxqmgycibpzrytcw.supabase.co/*"
   ],
   "action": {
     "default_popup": "popup.html",
@@ -43,6 +45,9 @@
   "web_accessible_resources": [
     {
       "resources": [
+        "toastify.min.js",
+        "supabase.min.js",
+        "toastify.min.css",
         "assets/chart.js",
         "app.html",
         "signin.html",
@@ -50,7 +55,16 @@
         "signin.js",
         "popup.js",
         "chart.umd.js",
-        "app.css"
+        "app.css",
+        "firebase-service.js",
+        "supabase-client.js",
+        "firebase-auth.js",
+        "firebase-app.js",
+        "supabase-cdn.js",
+        "supabase.min.js",
+        "watchlist.html",
+        "watchlist.css",
+        "watchlist.js"
       ],
       "matches": [
         "https://*.amazon.com/*"
@@ -58,6 +72,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.supabase.co https://evpxv92u1l.execute-api.us-east-2.amazonaws.com https://identitytoolkit.googleapis.com https://accounts.google.com https://apis.google.com https://www.googleapis.com https://api.keepa.com"
   }
 }
+

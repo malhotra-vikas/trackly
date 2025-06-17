@@ -7,13 +7,40 @@ const supabaseClient = window.supabase
 //NEXT_PUBLIC_SUPABASE_URL=https://frhtzxqmgycibpzrytcw.supabase.co
 //NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaHR6eHFtZ3ljaWJwenJ5dGN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDUwMTYsImV4cCI6MjA2MzUyMTAxNn0.ISXA-bkPHG4FIPLRJngmeXhWuzXK3sdczzxALAGnl6A
 
-// Initialize Supabase client
-const supabaseUrl = NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Initialize Supabase client asynchronously
+async function initializeSupabase() {
+  try {
+    const keys = await chrome.storage.local.get([
+      "supabaseUrl",
+      "supabaseKey",
+    ]);
 
-            
-// Create the client using the global Supabase object
-const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey)
+    // Validate required Supabase keys
+    if (!keys.supabaseUrl || !keys.supabaseKey) {
+      throw new Error('Missing Supabase configuration');
+    }
+    const supabase = supabaseClient.createClient(
+      keys.supabaseUrl,
+     keys.supabaseKey
+    );
+
+    console.log('Supabase client initialized successfully');
+    return supabase;
+  } catch (error) {
+    console.error('Supabase initialization error:', error);
+    throw error;
+  }
+}
+
+// Initialize and export client
+let supabaseInstance = null;
+
+async function getSupabaseClient() {
+  if (!supabaseInstance) {
+    supabaseInstance = await initializeSupabase();
+  }
+  return supabaseInstance;
+}
 
 // Function to initialize anonymous authentication
 async function initAuth() {
@@ -102,102 +129,121 @@ async function trackEventInSupabase(userId, category, action, properties = {}) {
   return data
 }
 
-// Function to sync watchlist with Supabase
-async function syncWatchlistItem(userId, item) {
-  const supabaseUserId = await getUserId()
-
-  if (!supabaseUserId) {
-    console.error("No authenticated user")
-    return null
-  }
-
-  // Get the database user ID
-  const { data: userData } = await supabase.from("users").select("id").eq("extension_user_id", userId).single()
-
-  if (!userData) {
-    console.error("User not found in database")
-    return null
-  }
-
-  // Check if item exists
-  const { data: existingItem } = await supabase
-    .from("watchlist_items")
-    .select("*")
-    .eq("user_id", userData.id)
-    .eq("asin", item.asin)
-    .single()
-
-  if (existingItem) {
-    // Update existing item
+async function getUserId(firebaseUid) {
+  try {
+    const supabase = await getSupabaseClient();
     const { data, error } = await supabase
-      .from("watchlist_items")
-      .update({
-        current_price: item.currentPrice,
-        deal_signal: item.dealSignal,
-        title: item.title,
-        image_url: item.imageUrl,
-        product_url: item.url,
-      })
-      .eq("id", existingItem.id)
-      .select()
+      .from('users')
+      .select('id')
+      .eq('extension_user_id', firebaseUid)
+      .maybeSingle();
 
-    if (error) {
-      console.error("Error updating watchlist item:", error)
-    }
-
-    return data
-  } else {
-    // Create new item
-    const { data, error } = await supabase
-      .from("watchlist_items")
-      .insert({
-        user_id: userData.id,
-        asin: item.asin,
-        title: item.title,
-        current_price: item.currentPrice,
-        deal_signal: item.dealSignal,
-        image_url: item.imageUrl,
-        product_url: item.url,
-      })
-      .select()
-
-    if (error) {
-      console.error("Error creating watchlist item:", error)
-    }
-
-    return data
+    if (error) throw error;
+    return data?.id;
+  } catch (error) {
+    console.error('Error getting user ID:', error);
+    throw error;
   }
 }
 
-// Function to remove watchlist item from Supabase
-async function removeWatchlistItemFromSupabase(userId, asin) {
-  const supabaseUserId = await getUserId()
+async function addToWatchlist(firebaseUid, product) {
+  try {
+    const supabase = await getSupabaseClient();
+    const userId = await getUserId(firebaseUid);
+    if (!userId) {
+      throw new Error('User not found');
+    }
 
-  if (!supabaseUserId) {
-    console.error("No authenticated user")
-    return null
+    const { data, error } = await supabase
+      .from('watchlist_items')
+      .insert({
+        user_id: userId,
+        asin: product.asin,
+        title: product.title,
+        current_price: product.currentPrice,
+        deal_signal: product.dealSignal || 'none',
+        image_url: product.imageUrl,
+        product_url: product.url
+      })
+      .select();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error adding to watchlist:', error);
+    return { success: false, error: error.message };
   }
+}
 
-  // Get the database user ID
-  const { data: userData } = await supabase.from("users").select("id").eq("extension_user_id", userId).single()
+async function removeFromWatchlist(firebaseUid, asin) {
+  try {
+    const supabase = await getSupabaseClient();
 
-  if (!userData) {
-    console.error("User not found in database")
-    return null
+    const userId = await this.getUserId(firebaseUid);
+    if (!userId) {
+      throw new Error('User not found');
+    }
+
+    const { error } = await supabase
+      .from('watchlist_items')
+      .delete()
+      .match({ user_id: userId, asin });
+
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing from watchlist:', error);
+    return { success: false, error: error.message };
   }
+}
 
-  // Delete the item
-  const { data, error } = await supabase.from("watchlist_items").delete().eq("user_id", userData.id).eq("asin", asin)
+async function isInWatchlist(firebaseUid, asin) {
+  try {
+    const userId = await this.getUserId(firebaseUid);
+    if (!userId) {
+      throw new Error('User not found');
+    }
+    const supabase = await getSupabaseClient();
 
-  if (error) {
-    console.error("Error removing watchlist item:", error)
+    const { data, error } = await supabase
+      .from('watchlist_items')
+      .select('id')
+      .match({ user_id: userId, asin })
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return { success: true, isInWatchlist: !!data };
+  } catch (error) {
+    console.error('Error checking watchlist:', error);
+    return { success: false, error: error.message };
   }
+}
 
-  return data
+async function getWatchlistItems(firebaseUid) {
+  try {
+    const userId = await this.getUserId(firebaseUid);
+    if (!userId) {
+      throw new Error('User not found');
+    }
+    const supabase = await getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('watchlist_items')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return { success: true, items: data };
+  } catch (error) {
+    console.error('Error getting watchlist items:', error);
+    return { success: false, error: error.message };
+  }
 }
 
 // Function to get analytics data from Supabase
 async function getAnalyticsFromSupabase() {
+  const supabase = await getSupabaseClient();
+
   // Get metrics summary
   const { data: metrics, error: metricsError } = await supabase.from("metrics_summary").select("*").single()
 
@@ -222,14 +268,61 @@ async function getAnalyticsFromSupabase() {
   }
 }
 
+async function createUserAfterSignup(firebaseUid) {
+    try {
+        const supabase = await getSupabaseClient();
+        if (!supabase) {
+            throw new Error('Supabase client not initialized');
+        }        
+        console.log("supabase client created ", supabase);
+        console.log("supabase client created for URL ", supabase.url);
+        
+        // Check if user already exists
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('extension_user_id', firebaseUid)
+            .maybeSingle();
+
+        if (existingUser) {
+            console.log('User already exists in Supabase');
+            return existingUser.id;
+        }
+
+        // Insert new user
+        const { data, error } = await supabase
+            .from('users')
+            .insert({
+                extension_user_id: firebaseUid,
+                install_date: new Date().toISOString(),
+                last_active: new Date().toISOString()
+            })
+            .select('id')
+            .single();
+
+        if (error) { 
+          console.log('Error in Supabase:', error);
+          throw error;
+        }
+
+        console.log('User created in Supabase:', data.id);
+        return data.id;
+    } catch (error) {
+        console.error('Error creating user in Supabase:', error);
+        throw error;
+    }
+}
+
 // Export as global variables instead of ES modules
 window.tracklySupabase = {
-  supabase,
+  getSupabaseClient,
   initAuth,
   getUserId,
   syncUser,
   trackEventInSupabase,
-  syncWatchlistItem,
-  removeWatchlistItemFromSupabase,
-  getAnalyticsFromSupabase,
+  addToWatchlist,
+  isInWatchlist,
+  getWatchlistItems,
+  removeFromWatchlist,
+  createUserAfterSignup
 }
