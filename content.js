@@ -13,8 +13,8 @@ if (window.location.hostname.includes("amazon.com")) {
     position: fixed;
     top: 10px;
     right: 10px;
-    background: #4F46E5;
-    color: white;
+    background: #D9CFC5;
+    color: #000;
     padding: 8px 12px;
     border-radius: 4px;
     z-index: 99999;
@@ -55,6 +55,7 @@ if (window.location.hostname.includes("amazon.com")) {
     setTimeout(() => {
       if (indicator.parentNode) {
         indicator.style.background = "#D9CFC5"
+        indicator.style.color = "#000"
         indicator.textContent = `Dottie`
       }
     }, 2000)
@@ -253,12 +254,12 @@ function createTracklyButton(asin) {
   // Add hover effect
   toggleButton.addEventListener("mouseenter", () => {
     toggleButton.style.transform = "translateY(-2px)"
-    toggleButton.style.backgroundColor = "#4338CA"
+    toggleButton.style.backgroundColor = "#D9CFC5"
   })
 
   toggleButton.addEventListener("mouseleave", () => {
     toggleButton.style.transform = "translateY(0)"
-    toggleButton.style.backgroundColor = "#4F46E5"
+    toggleButton.style.backgroundColor = "#D9CFC5"
   })
 
   // Add click handler
