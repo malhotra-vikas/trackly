@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <title>Sign In - Dottie</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
         :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338CA;
+            --primary: #D9CFC5;
+            --primary-dark: #D9CFC5;
             --bg: #F9FAFB;
             --text: #111827;
             --text-light: #6B7280;
@@ -34,6 +36,7 @@
             max-width: 320px;
             margin: 20px;
             animation: fadeIn 0.3s ease-out;
+            font-family: 'Inter';
         }
 
         @keyframes fadeIn {
@@ -60,10 +63,11 @@
         }
 
         .logo-text {
-            font-size: 24px;
+            font-size: 25px;
             font-weight: 600;
             color: var(--text);
             margin: 0;
+            font-family: 'Cormorant Garamond';
         }
 
         .form-group {
@@ -97,7 +101,7 @@
             width: 100%;
             padding: 10px;
             background: var(--primary);
-            color: white;
+            color: #000;
             border: none;
             border-radius: 6px;
             font-size: 14px;
@@ -130,7 +134,7 @@
         }
 
         .toggle-text a {
-            color: var(--primary);
+            color: #d0bca7;
             text-decoration: none;
             cursor: pointer;
         }
@@ -155,7 +159,7 @@
 
         <!-- Sign In Form -->
         <form id="signin-form">
-            <h2>Welcome Back</h2>
+            <h2 style="font-family: Cormorant Garamond; font-size: 25px;">Welcome Back</h2>
             <div class="form-group">
                 <label for="signin-email">Email</label>
                 <input type="email" id="signin-email" required placeholder="your@email.com">

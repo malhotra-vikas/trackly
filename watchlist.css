@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
 :root {
     /* Modern Professional Color Palette */
-    --primary: #2563eb;          /* Royal Blue */
-    --primary-dark: #1d4ed8;     /* Darker Blue */
+    --primary: #D9CFC5;          /* Royal Blue */
+    --primary-dark: #D9CFC5;     /* Darker Blue */
     --primary-light: #dbeafe;    /* Light Blue */
     --success: #059669;          /* Emerald Green */
     --danger: #dc2626;           /* Red */
@@ -52,9 +54,10 @@ body {
 }
 
 .logo-section h1 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: 600;
     margin: 0;
+    font-family: 'Cormorant Garamond';
 }
 
 .user-section {
@@ -152,7 +155,7 @@ body {
 
 .product-title {
     font-size: 0.95rem;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--text-primary);
     line-height: 1.4;
     /* Limit to 2 lines with ellipsis */
@@ -161,6 +164,7 @@ body {
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin: 0;
+    font-family: 'Inter';
 }
 
 .product-price {
@@ -195,8 +199,10 @@ body {
 
 .view-btn {
     background-color: var(--primary);
-    color: white;
+    color: #000;
+    font-weight: 500;
     border: 1px solid transparent;
+    text-decoration: none;
 }
 
 .view-btn:hover {

@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family: "inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 }
 
 body {
@@ -57,6 +59,8 @@ body {
 
 .logo-text {
   color: #1C1C1E;
+  font-family: 'Cormorant Garamond';
+  font-size: 22px;
 }
 
 
@@ -86,9 +90,9 @@ body {
 }
 
 .product-title {
-  font-family: 'Playfair Display', serif;
-  font-weight: 500;
-  font-size: 16px;
+  font-family: 'inter', serif;
+  font-weight: 400;
+  font-size: 15px;
   color: #1C1C1E;
 
   margin-bottom: 8px;
