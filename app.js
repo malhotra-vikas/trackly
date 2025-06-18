@@ -191,6 +191,7 @@ function renderProductData() {
     `${labelMap[productData.dealSignal]} ${productData.buyRecommendation}`
 
   recommendationTextElement.style.borderLeftColor = colorMap[productData.dealSignal] || '#D9CFC5'
+  recommendationTextElement.style.fontFamily = 'Inter'
 
   const signalColor = borderColors[productData.dealSignal] || "#4F46E5" // fallback to indigo
   //recommendationContainer.style.borderLeftColor = signalColor

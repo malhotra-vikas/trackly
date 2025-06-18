@@ -11,8 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #4F46E5;
-      --primary-hover: #4338CA;
+      --primary: #D9CFC5;
+      --primary-hover: #D9CFC5;
       --bg: #F9FAFB;
       --text: #374151;
       --radius: 6px;
@@ -84,8 +84,8 @@
       border: none;
       border-radius: var(--radius);
       background: var(--primary);
-      color: #fff;
-      font-weight: 600;
+      color: #000;
+      font-weight: 500;
       cursor: pointer;
       transition: background var(--transition), transform var(--transition);
       display: flex;
@@ -139,7 +139,7 @@
     .btn-outline:hover,
     .btn-outline:focus-visible {
       background: var(--primary);
-      color: #fff;
+      color: #000;
     }
   </style>
 </head>
@@ -149,7 +149,7 @@
     <div class="logo">
       <img src="icons/dotti-icon-48.png" alt="Dotti Logo" class="logo-img" />
     </div>
-    <p>Dottie is your Personal Smart Shopping Assistant to help you track prices and save money.</p>
+    <p style="font-family: Inter;">Dottie is your Personal Smart Shopping Assistant to help you track prices and save money.</p>
 
     <div class="actions">
       <!-- Track product on Amazon -->
@@ -175,7 +175,8 @@
       <!-- Watchlist button (hidden by default) -->
       <button id="watchlist-view-btn" class="btn btn-outline" style="display: none;">
         <svg viewBox="0 0 24 24" fill="none">
-          <path fill="currentColor" d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/>
+          <path fill="currentColor"
+            d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z" />
         </svg>
         View Watchlist
       </button>

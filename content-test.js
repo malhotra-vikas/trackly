@@ -11,7 +11,7 @@ if (window.location.hostname.includes("amazon.com")) {
     position: fixed;
     top: 10px;
     right: 10px;
-    background: #4F46E5;
+    background: #D9CFC5;
     color: white;
     padding: 8px 12px;
     border-radius: 4px;

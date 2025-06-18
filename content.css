@@ -4,9 +4,10 @@
 
 #trackly-toggle-button {
   transition: all 0.2s ease;
+  background-color: #D9CFC5 !important;
 }
 
 #trackly-toggle-button:hover {
-  background-color: #4338ca;
+  background-color: #D9CFC5;
   transform: translateY(-2px);
 }
