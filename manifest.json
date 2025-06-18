@@ -64,7 +64,8 @@
         "supabase.min.js",
         "watchlist.html",
         "watchlist.css",
-        "watchlist.js"
+        "watchlist.js",
+        "icons/dotti-icon.png"
       ],
       "matches": [
         "https://*.amazon.com/*"

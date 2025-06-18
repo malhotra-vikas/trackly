@@ -31,7 +31,11 @@ if (window.location.hostname.includes("amazon.com")) {
     chrome.runtime.sendMessage({ type: "PING" }, (response) => {
       if (response) {
         console.log("Trackly: Background responded:", response)
-        indicator.textContent = "Dottie Connected!"
+        const iconUrl = chrome.runtime.getURL("icons/dotti-icon.png");
+        indicator.innerHTML = `
+        <div class="image-container">
+          <img class="product-image" src="${iconUrl}" alt="Dotti Logo" style="width: 25px; height: 25px">
+        </div>`;
         indicator.style.background = "#10B981"
       } else {
         console.log("Trackly: No background response")
@@ -50,9 +54,10 @@ if (window.location.hostname.includes("amazon.com")) {
     // Update indicator with ASIN
     setTimeout(() => {
       if (indicator.parentNode) {
-        indicator.textContent = `ASIN: ${asin}`
+        indicator.style.background = "#D9CFC5"
+        indicator.textContent = `Dottie`
       }
-    }, 1000)
+    }, 2000)
 
     // Create Trackly button
     createTracklyButton(asin)
@@ -233,8 +238,8 @@ function createTracklyButton(asin) {
     right: 20px;
     z-index: 10000;
     padding: 8px 16px;
-    background-color: #4F46E5;
-    color: white;
+    background-color: #D9CFC5;
+    color: #000;
     border: none;
     border-radius: 20px;
     font-weight: bold;
@@ -371,7 +376,7 @@ function toggleOverlay(asin) {
     } else {
       overlayContainer.style.display = "none"
       toggleButton.textContent = `Dottie (${asin})`
-      toggleButton.style.backgroundColor = "#4F46E5"
+      toggleButton.style.backgroundColor = "#D9CFC5"
       console.log("Trackly: Overlay hidden")
     }
   }
@@ -397,7 +402,7 @@ window.addEventListener("message", (event) => {
       const asinMatch = window.location.href.match(/\/dp\/([A-Z0-9]{10})/)
       const asin = asinMatch ? asinMatch[1] : null
       toggleButton.textContent = asin ? `Dottie (${asin})` : "Dottie"
-      toggleButton.style.backgroundColor = "#4F46E5"
+      toggleButton.style.backgroundColor = "#D9CFC5"
     }
   }
 
