@@ -50,8 +50,8 @@ window.addEventListener("message", async (event) => {
           productData = {
             ...productDetails,
             ...response.data,
-          }          
-            renderProductData()
+          }
+          renderProductData()
         } else {
           console.error("Trackly: Failed to get price history:", response)
           showError(`Failed to get price history: ${response ? response.error : "No response"}`)
@@ -105,15 +105,26 @@ window.addEventListener("message", async (event) => {
 //❌ Red if it's > 70% of the highest
 
 function computeDealSignal(currentPrice, lowestPrice, highestPrice) {
-  const nearLowestThreshold = lowestPrice * 1.10;  // 10% above lowest
-  const nearHighestThreshold = highestPrice * 0.70; // 70% of highest
 
-  if (currentPrice <= nearLowestThreshold) {
-    return "green";  // Best deal
-  } else if (currentPrice <= nearHighestThreshold) {
-    return "yellow"; // Decent deal
+  // Green = current price  <  lowest + lowest * 0.25
+  // RED = current price > lowest + lowest * 0.75
+  currentPrice = Number(currentPrice);
+  lowestPrice = Number(lowestPrice);
+  highestPrice = Number(highestPrice);
+
+  console.log("Computing Deal Signal for current price ", currentPrice)
+  const greenMarker = lowestPrice + lowestPrice * 0.25;
+  const redMarker = lowestPrice + lowestPrice * 0.75;
+
+  console.log("Green Marker threshold is", greenMarker.toFixed(2));
+  console.log("Red Marker threshold is", redMarker.toFixed(2));
+
+  if (currentPrice < greenMarker) {
+    return "green"
+  } else if (currentPrice > redMarker) {
+    return "red"
   } else {
-    return "red";    // Poor deal
+    return "yellow"
   }
 }
 
@@ -163,6 +174,9 @@ function renderProductData() {
     lowest,
     highest
   )
+
+  console.log("Trackly: Deal Signal: ", productData.dealSignal)
+
 
   const labelMap = {
     green: "🟢 ",
@@ -327,8 +341,8 @@ function createChart() {
 function updateWatchlistButton() {
   const heartIcon = document.querySelector('.favorite-icon');
   const heartPath = heartIcon?.querySelector('path');
-  
-  if (isInWatchlistItem) {  
+
+  if (isInWatchlistItem) {
     heartIcon?.classList.add('active');
     if (heartPath) {
       heartPath.style.fill = '#EF4444';
@@ -344,92 +358,92 @@ function updateWatchlistButton() {
 }
 
 function openSignInWindow() {
-    return new Promise((resolve) => {
-        const width = 400;
-        const height = 600;
-        const left = screen.width/2 - width/2;
-        const top = screen.height/2 - height/2;
+  return new Promise((resolve) => {
+    const width = 400;
+    const height = 600;
+    const left = screen.width / 2 - width / 2;
+    const top = screen.height / 2 - height / 2;
 
-        chrome.windows.create({
-            url: chrome.runtime.getURL('signin.html'),
-            type: 'popup',
-            width: width,
-            height: height,
-            left: left,
-            top: top
-        });
-
-        // Listen for auth state change
-        const unsubscribe = window.firebaseService.auth.onAuthStateChanged((user) => {
-            if (user) {
-                unsubscribe();
-                resolve(user);
-            }
-        });
+    chrome.windows.create({
+      url: chrome.runtime.getURL('signin.html'),
+      type: 'popup',
+      width: width,
+      height: height,
+      left: left,
+      top: top
     });
+
+    // Listen for auth state change
+    const unsubscribe = window.firebaseService.auth.onAuthStateChanged((user) => {
+      if (user) {
+        unsubscribe();
+        resolve(user);
+      }
+    });
+  });
 }
 
 async function handleWatchlistClick() {
-    try {
-        const firebaseService = window.firebaseService;
-        if (!firebaseService) {
-            throw new Error('Firebase service not available');
-        }
-
-        // Initialize Firebase if not already initialized
-        if (!firebaseInitialized) {
-            await firebaseService.initializeFirebase();
-            firebaseInitialized = true;
-        }
-
-        let user = await firebaseService.getCurrentUser();
-        
-        if (!user) {
-            showToast('Please sign in to use the watchlist', 'warning');
-            // Wait for user to sign in
-            user = await openSignInWindow();
-            if (!user) return;
-            
-            // Refresh product data after login
-            await renderProductData();
-        }
-
-        if (isInWatchlistItem) {
-            const response = await window.tracklySupabase.removeFromWatchlist(
-                user.uid,
-                productData.asin
-            );
-            if (response && response.success) {
-                isInWatchlistItem = false;
-                updateWatchlistButton();
-                showToast('Removed from watchlist');
-            }
-        } else {
-            const product = {
-                asin: productData.asin,
-                title: productData.title,
-                currentPrice: productData.price,
-                imageUrl: productData.imageUrl,
-                dealSignal: productData.dealSignal,
-                url: productData.url
-            };
-
-            console.log("product added to watchlist is ", product)
-
-            const response = await window.tracklySupabase.addToWatchlist(
-                user.uid,
-                product
-            );
-            if (response && response.success) {
-                isInWatchlistItem = true;
-                updateWatchlistButton();
-                showToast('Added to watchlist');
-            }
-        }
-    } catch (error) {
-        console.error("Error updating watchlist:", error);
-        showToast(error.message, 'error');
+  try {
+    const firebaseService = window.firebaseService;
+    if (!firebaseService) {
+      throw new Error('Firebase service not available');
     }
+
+    // Initialize Firebase if not already initialized
+    if (!firebaseInitialized) {
+      await firebaseService.initializeFirebase();
+      firebaseInitialized = true;
+    }
+
+    let user = await firebaseService.getCurrentUser();
+
+    if (!user) {
+      showToast('Please sign in to use the watchlist', 'warning');
+      // Wait for user to sign in
+      user = await openSignInWindow();
+      if (!user) return;
+
+      // Refresh product data after login
+      await renderProductData();
+    }
+
+    if (isInWatchlistItem) {
+      const response = await window.tracklySupabase.removeFromWatchlist(
+        user.uid,
+        productData.asin
+      );
+      if (response && response.success) {
+        isInWatchlistItem = false;
+        updateWatchlistButton();
+        showToast('Removed from watchlist');
+      }
+    } else {
+      const product = {
+        asin: productData.asin,
+        title: productData.title,
+        currentPrice: productData.price,
+        imageUrl: productData.imageUrl,
+        dealSignal: productData.dealSignal,
+        url: productData.url
+      };
+
+      console.log("product added to watchlist is ", product)
+
+      const response = await window.tracklySupabase.addToWatchlist(
+        user.uid,
+        product
+      );
+      if (response && response.success) {
+        isInWatchlistItem = true;
+        updateWatchlistButton();
+        showToast('Added to watchlist');
+      }
+    }
+  } catch (error) {
+    console.error("Error updating watchlist:", error);
+    showToast(error.message, 'error');
+  }
 }
 
 function setupEventListeners() {
@@ -499,28 +513,28 @@ document.addEventListener("DOMContentLoaded", () => {
 console.log("Trackly: App script ready")
 
 function showToast(message, type = 'success') {
-    const colors = {
-        success: '#10B981',
-        error: '#EF4444'
-    };
+  const colors = {
+    success: '#10B981',
+    error: '#EF4444'
+  };
 
-    Toastify({
-        text: message,
-        duration: 3000,
-        gravity: "bottom",
-        position: "right",
-        close: true,
-        style: {
-            background: colors[type],
-            borderRadius: "8px",
-            fontSize: "14px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px"
-        },
-        className: "trackly-toast",
-        onClick: function() {
-            this.hideToast();
-        }
-    }).showToast();
+  Toastify({
+    text: message,
+    duration: 3000,
+    gravity: "bottom",
+    position: "right",
+    close: true,
+    style: {
+      background: colors[type],
+      borderRadius: "8px",
+      fontSize: "14px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px"
+    },
+    className: "trackly-toast",
+    onClick: function () {
+      this.hideToast();
+    }
+  }).showToast();
 }

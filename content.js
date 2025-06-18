@@ -45,8 +45,9 @@ if (window.location.hostname.includes("amazon.com")) {
     })
   }
 
-  // Extract ASIN from URL
-  const asinMatch = window.location.href.match(/\/dp\/([A-Z0-9]{10})/)
+  // Extract ASIN from various Amazon URL formats
+  const asinMatch = window.location.href.match(/(?:\/dp\/|\/gp\/product\/|\/gp\/aw\/d\/|\/product\/|\/d\/)([A-Z0-9]{10})(?:[/?]|$)/i)
+
   if (asinMatch) {
     const asin = asinMatch[1]
     console.log("Trackly: ASIN found:", asin)

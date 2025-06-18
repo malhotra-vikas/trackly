@@ -65,6 +65,7 @@ exports.handler = async (event) => {
         firebaseProjectId: process.env.FIREBASE_PROJECT_ID || '',
         firebaseAppId: process.env.FIREBASE_APP_ID || '',
         firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID || '',
+        firebaseMeasurementIdAPIKey: process.env.FIREBASE_MEASUREMENT_ID_API_KEY || '',
         firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
         firebaseStorageBucketId: process.env.FIREBASE_STORAGE_BUCKET_ID || '',
 
