@@ -121,6 +121,7 @@ async function fetchSecrets() {
       firebaseAppId: result.data.firebaseAppId,
       firebaseAuthDomain: result.data.firebaseAuthDomain,
       firebaseMeasurementId: result.data.firebaseMeasurementId,
+      firebaseMeasurementIdAPIKey: result.data.firebaseMeasurementIdAPIKey,
       firebaseMessagingSenderId: result.data.firebaseMessagingSenderId,
       firebaseProjectId: result.data.firebaseProjectId,
       firebaseStorageBucketId: result.data.firebaseStorageBucketId,

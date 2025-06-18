@@ -1,6 +1,3 @@
-// Key management for Trackly
-
-// Configuration
 const SECRETS_ENDPOINT = "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/PROD/secrets"
 const EXTENSION_API_KEY = "aa79fb2656c48210d7d9cfa3821ff6f4"
 const SECRETS_CACHE_KEY = "trackly_secrets_cache"
@@ -29,6 +26,7 @@ async function checkKeys() {
 
 // Function to save keys
 async function saveKeys(keys) {
+    console.log("Trackly: Stroing Keys ", keys)
     await chrome.storage.local.set(keys)
     return true
 }
@@ -41,6 +39,7 @@ async function getKeys() {
         "firebaseProjectId",
         "firebaseAppId",
         "firebaseMeasurementId",
+        "GAAPIKey",
         "firebaseMessagingSenderId",
         "firebaseStorageBucketId",
         "openaiApiKey",
@@ -111,6 +110,7 @@ async function fetchSecrets() {
             firebaseProjectId: secrets.firebaseProjectId,
             firebaseAppId: secrets.firebaseAppId,
             firebaseMeasurementId: secrets.firebaseMeasurementId,
+            GAAPIKey: secrets.firebaseMeasurementIdAPIKey,
             firebaseMessagingSenderId: secrets.firebaseMessagingSenderId,
             firebaseStorageBucketId: secrets.firebaseStorageBucketId,
             openaiApiKey: secrets.openaiApiKey
@@ -162,6 +162,7 @@ const tracklyKeys = {
                 "firebaseProjectId",
                 "firebaseAppId",
                 "firebaseMeasurementId",
+                "GAAPIKey",
                 "firebaseMessagingSenderId",
                 "firebaseStorageBucketId",
                 "openaiApiKey",
@@ -171,7 +172,7 @@ const tracklyKeys = {
             ], resolve);
         });
     },
-
+/*
     async fetchSecrets() {
         try {
             const keys = await this.getKeys();
@@ -190,6 +191,7 @@ const tracklyKeys = {
             throw error;
         }
     }
+*/        
 };
 
 // Export to global scope
