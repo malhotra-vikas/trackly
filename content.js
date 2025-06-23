@@ -8,7 +8,7 @@ if (window.location.hostname.includes("amazon.com")) {
 
   // Create visual indicator
   const indicator = document.createElement("div")
-  indicator.textContent = "Dottie Loaded!"
+  indicator.textContent = "Dotti Loaded!"
   indicator.style.cssText = `
     position: fixed;
     top: 10px;
@@ -39,7 +39,7 @@ if (window.location.hostname.includes("amazon.com")) {
         indicator.style.background = "#10B981"
       } else {
         console.log("Trackly: No background response")
-        indicator.textContent = "Dottie Error"
+        indicator.textContent = "Dotti Error"
         indicator.style.background = "#EF4444"
       }
     })
@@ -57,7 +57,7 @@ if (window.location.hostname.includes("amazon.com")) {
       if (indicator.parentNode) {
         indicator.style.background = "#D9CFC5"
         indicator.style.color = "#000"
-        indicator.textContent = `Dottie`
+        indicator.textContent = `Dotti`
       }
     }, 2000)
 
@@ -233,7 +233,7 @@ function createTracklyButton(asin) {
   // Create toggle button
   const toggleButton = document.createElement("button")
   toggleButton.id = "trackly-toggle-button"
-  toggleButton.textContent = `Dottie (${asin})`
+  toggleButton.textContent = `Dotti (${asin})`
   toggleButton.style.cssText = `
     position: fixed;
     bottom: 20px;
@@ -320,7 +320,7 @@ function toggleOverlay(asin) {
     document.body.appendChild(overlayContainer)
 
     // Update button
-    toggleButton.textContent = "Close Dottie"
+    toggleButton.textContent = "Close Dotti"
     toggleButton.style.backgroundColor = "#EF4444"
 
     // Send product details to iframe when loaded
@@ -372,12 +372,12 @@ function toggleOverlay(asin) {
     // Toggle existing overlay
     if (overlayContainer.style.display === "none") {
       overlayContainer.style.display = "block"
-      toggleButton.textContent = "Close Dottie"
+      toggleButton.textContent = "Close Dotti"
       toggleButton.style.backgroundColor = "#EF4444"
       console.log("Trackly: Overlay shown")
     } else {
       overlayContainer.style.display = "none"
-      toggleButton.textContent = `Dottie (${asin})`
+      toggleButton.textContent = `Dotti (${asin})`
       toggleButton.style.backgroundColor = "#D9CFC5"
       console.log("Trackly: Overlay hidden")
     }
@@ -403,7 +403,7 @@ window.addEventListener("message", (event) => {
     if (toggleButton) {
       const asinMatch = window.location.href.match(/\/dp\/([A-Z0-9]{10})/)
       const asin = asinMatch ? asinMatch[1] : null
-      toggleButton.textContent = asin ? `Dottie (${asin})` : "Dottie"
+      toggleButton.textContent = asin ? `Dotti (${asin})` : "Dotti"
       toggleButton.style.backgroundColor = "#D9CFC5"
     }
   }

@@ -6,7 +6,7 @@ if (window.location.hostname.includes("amazon.com")) {
 
     // Create visual indicator
     const indicator = document.createElement("div")
-    indicator.textContent = "Dottie Loaded!"
+    indicator.textContent = "Dotti Loaded!"
     indicator.style.cssText = `
     position: fixed;
     top: 10px;
@@ -29,11 +29,11 @@ if (window.location.hostname.includes("amazon.com")) {
         chrome.runtime.sendMessage({ type: "PING" }, (response) => {
             if (response) {
                 console.log("Trackly: Background responded:", response)
-                indicator.textContent = "Dottie Connected!"
+                indicator.textContent = "Dotti Connected!"
                 indicator.style.background = "#10B981"
             } else {
                 console.log("Trackly: No background response")
-                indicator.textContent = "Dottie Error"
+                indicator.textContent = "Dotti Error"
                 indicator.style.background = "#EF4444"
             }
         })
