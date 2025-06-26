@@ -43,6 +43,7 @@ async function getKeys() {
         "firebaseMessagingSenderId",
         "firebaseStorageBucketId",
         "openaiApiKey",
+        "perplexityaiApiKey",
         "supabaseUrl",
         "supabaseKey",
         "keepaKey"
@@ -113,7 +114,8 @@ async function fetchSecrets() {
             GAAPIKey: secrets.firebaseMeasurementIdAPIKey,
             firebaseMessagingSenderId: secrets.firebaseMessagingSenderId,
             firebaseStorageBucketId: secrets.firebaseStorageBucketId,
-            openaiApiKey: secrets.openaiApiKey
+            openaiApiKey: secrets.openaiApiKey,
+            perplexityaiApiKey: secrets.perplexityaiApiKey
         })
 
         console.log("Trackly: Secrets fetched and cached successfully")
@@ -166,6 +168,7 @@ const tracklyKeys = {
                 "firebaseMessagingSenderId",
                 "firebaseStorageBucketId",
                 "openaiApiKey",
+                "perplexityaiApiKey",
                 "supabaseUrl",
                 "supabaseKey",
                 "keepaKey"

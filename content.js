@@ -83,6 +83,7 @@ async function getKeys() {
     "supabaseKey",
     "keepaKey",
     "openAIApiKey",
+    "perplexityaiApiKey",
     "firebaseApiKey",
     "firebaseAppId",
     "firebaseAuthDomain",
@@ -118,9 +119,11 @@ async function callOpenAI(asin, title, price, priceHistory) {
   try {
     const keys = await getKeys();
     console.log("Trackly: AI Prompt ", prompt)
-    console.log("Trackly: AI Prompt Runing with A{I Key ", keys.openAIApiKey)
+    console.log("Trackly: AI Prompt Runing with OpenAI Key ", keys.openAIApiKey)
+    console.log("Trackly: AI Prompt Runing with Perplexity AI Key ", keys.perplexityaiApiKey)
 
     if (!keys.openAIApiKey) throw new Error("OpenAI key missing");
+    if (!keys.perplexityaiApiKey) throw new Error("Perplexity AI key missing");
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

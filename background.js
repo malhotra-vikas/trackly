@@ -17,6 +17,7 @@ async function checkKeys() {
     "supabaseKey",
     "keepaKey",
     "openAIApiKey",
+    "perplexityaiApiKey",
     "firebaseApiKey",
     "firebaseAppId",
     "firebaseAuthDomain",
@@ -29,6 +30,7 @@ async function checkKeys() {
     hasSupabaseKeys: !!(data.supabaseUrl && data.supabaseKey),
     hasKeepaKey: !!data.keepaKey,
     hasOpenAIKey: !!data.openAIApiKey,
+    hasPerplexityAIKey: !!data.perplexityaiApiKey,
     hasFirebaseKeys: !!(
       data.firebaseApiKey &&
       data.firebaseAppId &&
@@ -52,6 +54,7 @@ async function getKeys() {
     "supabaseKey",
     "keepaKey",
     "openAIApiKey",
+    "perplexityaiApiKey",
     "firebaseApiKey",
     "firebaseAppId",
     "firebaseAuthDomain",
@@ -117,6 +120,7 @@ async function fetchSecrets() {
       supabaseKey: result.data.supabaseKey,
       keepaKey: result.data.keepaApiKey,
       openAIApiKey: result.data.openaiApiKey,
+      perplexityaiApiKey: result.data.perplexityaiApiKey,
       firebaseApiKey: result.data.firebaseApiKey,
       firebaseAppId: result.data.firebaseAppId,
       firebaseAuthDomain: result.data.firebaseAuthDomain,
