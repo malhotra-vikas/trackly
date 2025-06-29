@@ -4,46 +4,198 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trackly</title>
+  <title>Dotti – Smart Shopping Assistant</title>
+  <!-- Professional font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #D9CFC5;
+      --primary-hover: #D9CFC5;
+      --bg: #F9FAFB;
+      --text: #374151;
+      --radius: 6px;
+      --transition: 150ms ease-in-out;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
-      width: 300px;
-      height: 220px;
-      padding: 20px;
-      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      width: 320px;
+      height: 260px;
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .card {
+      background: #fff;
+      width: 100%;
+      margin-top: 20px;
+      padding: 24px 20px;
+      border-radius: var(--radius);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .logo__dot {
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border-radius: 50%;
     }
 
     h1 {
-      color: #4F46E5;
-      margin-bottom: 10px;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 0;
     }
 
     p {
-      color: #666;
-      margin-bottom: 15px;
+      font-size: 0.875rem;
+      color: var(--text);
+      margin: 0 0 20px 0;
+      text-align: center;
+      line-height: 1.4;
     }
 
-    button {
-      background-color: #4F46E5;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 10px;
+    .btn {
       width: 100%;
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--primary);
+      color: #000;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      background: var(--primary-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .actions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .user-info {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .user-info .user-email {
+      font-size: 0.875rem;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-outline:hover,
+    .btn-outline:focus-visible {
+      background: var(--primary);
+      color: #000;
     }
   </style>
+  <script type="module" crossorigin src="/assets/popup-DFD_SYOv.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
 </head>
 
 <body>
-  <h1>Trackly</h1>
-  <p>Smart Shopping Assistant</p>
-  <p>Visit Amazon to start tracking products</p>
-  <button id="amazon-button">Go to Amazon</button>
-  <button id="signin-button">Sign Up / Sign In</button>
+  <div class="card">
+    <div class="logo">
+      <img src="data:image/png;base64,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" alt="Dotti Logo" class="logo-img" />
+    </div>
+    <p style="font-family: Inter;">Dotti is your Personal Smart Shopping Assistant to help you track prices and save money.</p>
 
-  <script src="popup.js"></script>
+    <div class="actions">
+      <!-- Track product on Amazon -->
+      <button id="amazon-button" class="btn">
+        <!-- Amazon icon -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M6.2 12.1c.2 1.2 1.5 1.9 3.6 2 1.6 0 3.2-.4 4.4-1.2v2.6c-1.3.7-3 1.1-4.7 1.1-4 0-6.9-2.1-6.9-5.5 0-2.6 1.7-4.4 4.9-5.4 3.5-1 8.1-.6 8.1-3.3 0-1.4-1.3-2.3-3.6-2.3-2.5 0-4.6.9-5.4 2.2l-2.4-.7C3.2 2.4 5.9 1 9.2 1c4.1 0 6.3 1.9 6.3 4.7v8.4c0 1.1.6 1.6 1.3 1.6.4 0 .8-.1 1-.2l.3 2c-.4.2-1.2.4-2.3.4-2.1 0-3.3-1-3.3-3.2v-.7c-1 1.3-2.9 2.2-5.3 2.2-3.5 0-6.2-2-6.2-5.2 0-2.7 1.8-4.4 5-5.3 3.4-1 7.9-.7 7.9-3.4 0-1.2-1-2-2.9-2-2.4 0-4.3.9-5.1 2.1L6.2 12.1z" />
+        </svg>
+        Track on Amazon
+      </button>
+
+      <!-- Sign Up / Sign In -->
+      <button id="signin-button" class="btn btn-outline">
+        <!-- User icon -->
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z" />
+        </svg>
+        Sign In / Sign Up
+      </button>
+
+      <!-- Watchlist button (hidden by default) -->
+      <button id="watchlist-view-btn" class="btn btn-outline" style="display: none;">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path fill="currentColor"
+            d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z" />
+        </svg>
+        View Watchlist
+      </button>
+    </div>
+    <div class="user-info" style="display: none;">
+      <span class="user-email"></span>
+      <button id="signout-button" class="btn">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Order matters: first load Firebase, then secrets, then Supabase -->
+
+
+
+
+
+  <!-- Load your app scripts after Firebase -->
 
 </body>
 

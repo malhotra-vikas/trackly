@@ -1,3 +1,5 @@
+import './content.css';
+
 // Content script for Trackly - Enhanced ASIN extraction with indicators and overlay
 
 console.log("Trackly: Content script loaded on:", window.location.href)

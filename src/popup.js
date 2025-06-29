@@ -14,12 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("✅ SupabaseLite ready in popup.js:", supabaseLite);
 
     // Initialize Firebase next
-    const firebaseService = window.firebaseService;
-    if (!firebaseService) {
-      throw new Error('Firebase service not available');
-    }
-    await firebaseService.initializeFirebase();
-    console.log('✅ Firebase initialized in popup');
+    console.log('🟡 Skipping Firebase init – handled via backend login flow');
 
     // Add Amazon button event
     amazonBtn?.addEventListener("click", () => {

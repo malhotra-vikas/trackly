@@ -1,3 +1,21 @@
+import { initializeApp } from 'firebase/app';
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  signInWithCustomToken
+} from 'firebase/auth';
+
+export async function loginWithCustomToken(token) {
+  const auth = window.firebaseService?.auth;
+  if (!auth) throw new Error('Firebase not initialized');
+  return await signInWithCustomToken(auth, token);
+}
+
 class FirebaseService {
   constructor() {
     this.auth = null;
@@ -39,7 +57,6 @@ class FirebaseService {
     if (this.initialized) return;
 
     try {
-      // Get Firebase config
       const keys = await chrome.storage.local.get([
         "firebaseApiKey",
         "firebaseAuthDomain",
@@ -50,7 +67,6 @@ class FirebaseService {
         "firebaseStorageBucketId"
       ]);
 
-      // Validate required keys
       if (!keys.firebaseApiKey || !keys.firebaseAuthDomain) {
         throw new Error('Missing required Firebase configuration');
       }
@@ -64,18 +80,16 @@ class FirebaseService {
         appId: keys.firebaseAppId
       };
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      this.auth = firebase.auth();
+      const app = initializeApp(firebaseConfig); // ✅ Use returned app
+      this.auth = getAuth(app);
 
-      await this.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      await setPersistence(this.auth, browserLocalPersistence); // ✅ No global reference
 
       this.initialized = true;
-      console.log('Firebase initialized successfully');
-
+      console.log('✅ Firebase initialized successfully');
       return true;
     } catch (error) {
-      console.error('Firebase initialization error:', error);
+      console.error('❌ Firebase initialization error:', error);
       throw error;
     }
   }
@@ -85,7 +99,7 @@ class FirebaseService {
       throw new Error('Firebase not initialized');
     }
     try {
-      const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
       return { success: true, user: userCredential.user };
     } catch (error) {
       return {
@@ -101,7 +115,7 @@ class FirebaseService {
       throw new Error('Firebase not initialized');
     }
     try {
-      const userCredential = await this.auth.createUserWithEmailAndPassword(email, password);
+      const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
 
       const user = userCredential.user;
       const extensionUserId = user.uid;
@@ -126,7 +140,7 @@ class FirebaseService {
       throw new Error('Firebase not initialized');
     }
     try {
-      await this.auth.signOut();
+      await signOut(this.auth);
       return { success: true };
     } catch (error) {
       console.error('Sign out   error:', error);
@@ -154,7 +168,7 @@ class FirebaseService {
     if (!this.auth) {
       throw new Error('Firebase not initialized');
     }
-    return this.auth.onAuthStateChanged(callback);
+    onAuthStateChanged(this.auth, callback);
   }
 
   // Adding Supabase actions
