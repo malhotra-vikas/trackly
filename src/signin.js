@@ -97,7 +97,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 console.log('Starting sign in process');
 
-                const res = await fetch('http://localhost:3001/auth/login', {
+
+                const res = await fetch('http://13.222.142.175:3001/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
