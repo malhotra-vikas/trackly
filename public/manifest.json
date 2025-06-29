@@ -73,7 +73,7 @@
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.supabase.co https://evpxv92u1l.execute-api.us-east-2.amazonaws.com https://identitytoolkit.googleapis.com https://accounts.google.com https://apis.google.com https://www.googleapis.com https://api.keepa.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://13.222.142.175:3001 https://*.supabase.co https://evpxv92u1l.execute-api.us-east-2.amazonaws.com https://identitytoolkit.googleapis.com https://accounts.google.com https://apis.google.com https://www.googleapis.com https://api.keepa.com"
   }
 }
 
