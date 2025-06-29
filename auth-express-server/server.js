@@ -9,7 +9,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: '*', // In production, use specific origin: chrome-extension://<your-extension-id>
+}));
 app.use(express.json());
 
 // Initialize Firebase Admin SDK
