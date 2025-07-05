@@ -70,7 +70,11 @@ exports.handler = async (event) => {
         firebaseStorageBucketId: process.env.FIREBASE_STORAGE_BUCKET_ID || '',
 
         //OpenAI Key
-        openaiApiKey: process.env.OPENAI_API_KEY
+        openaiApiKey: process.env.OPENAI_API_KEY,
+
+        // Perplexity Key
+        perplexityaiApiKey: process.env.PERPLEXITYAI_API_KEY
+
     };
 
     console.log('Returning secrets successfully');

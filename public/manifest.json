@@ -1,0 +1,79 @@
+{
+  "manifest_version": 3,
+  "name": "Dotti - Smart Shopping Assistant",
+  "version": "1.1.9",
+  "description": "Make smarter purchase decisions with AI-powered price history, inventory insights, and recommendations",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.amazon.com/*",
+    "https://pciwvyqxiqhwsxdoagrw.supabase.co/",
+    "https://evpxv92u1l.execute-api.us-east-2.amazonaws.com/*",
+    "https://frhtzxqmgycibpzrytcw.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/dotti-icon-16.png",
+      "48": "icons/dotti-icon-48.png",
+      "128": "icons/dotti-icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/dotti-icon-16.png",
+    "48": "icons/dotti-icon-48.png",
+    "128": "icons/dotti-icon-128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.amazon.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "toastify.min.js",
+        "supabase.min.js",
+        "toastify.min.css",
+        "assets/chart.js",
+        "app.html",
+        "signin.html",
+        "app.js",
+        "signin.js",
+        "popup.js",
+        "chart.umd.js",
+        "app.css",
+        "firebase-service.js",
+        "supabase-client.js",
+        "firebase-auth.js",
+        "firebase-app.js",
+        "supabase-cdn.js",
+        "supabase.min.js",
+        "watchlist.html",
+        "watchlist.css",
+        "watchlist.js",
+        "icons/dotti-icon.png"
+      ],
+      "matches": [
+        "https://*.amazon.com/*"
+      ]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://13.222.142.175:3001 https://*.supabase.co https://evpxv92u1l.execute-api.us-east-2.amazonaws.com https://identitytoolkit.googleapis.com https://accounts.google.com https://apis.google.com https://www.googleapis.com https://api.keepa.com"
+  }
+}
+

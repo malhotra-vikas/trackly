@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dotti – Smart Shopping Assistant</title>
   <!-- Professional font -->
+  <link rel="stylesheet" href="fonts/fonts.css">
   <style>
     :root {
       --primary: #D9CFC5;
@@ -139,17 +140,12 @@
       color: #000;
     }
   </style>
-  <script type="module" crossorigin src="/assets/popup-Bc9MqApa.js"></script>
-  <link rel="modulepreload" crossorigin href="/assets/fonts-_8o3HyZC.js">
-  <link rel="modulepreload" crossorigin href="/assets/firebaseService-BFtkSM1K.js">
-  <link rel="modulepreload" crossorigin href="/assets/supabaseClient-DcKK0_43.js">
-  <link rel="stylesheet" crossorigin href="/assets/fonts-BkNe2MxU.css">
 </head>
 
 <body>
   <div class="card">
     <div class="logo">
-      <img src="data:image/png;base64,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" alt="Dotti Logo" class="logo-img" />
+      <img src="icons/dotti-icon-48.png" alt="Dotti Logo" class="logo-img" />
     </div>
     <p style="font-family: Inter;">Dotti is your Personal Smart Shopping Assistant to help you track prices and save money.</p>
 
@@ -192,6 +188,7 @@
   <!-- Order matters: first load Firebase, then secrets, then Supabase -->
 
 
+  <script type="module" src="../src//popup.js"></script>
 
 
 
