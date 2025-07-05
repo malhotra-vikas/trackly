@@ -1,3 +1,12 @@
+import { firebaseService } from './firebase-service.js';
+window.firebaseService = firebaseService; // still attach globally if needed
+
+import { tracklySupabase } from './supabase-client.js';
+window.tracklySupabase = tracklySupabase;
+
+import Toastify from 'toastify-js';
+import 'toastify-js/src/toastify.css';
+
 let currentPage = 1;
 const ITEMS_PER_PAGE = 12;
 let totalItems = 0;
@@ -5,9 +14,8 @@ let currentUser = null; // Add this global user variable
 
 async function initWatchlist() {
     try {
-        const firebaseService = window.firebaseService;
         await firebaseService.initializeFirebase();
-        
+
         // Store user globally
         currentUser = await new Promise((resolve) => {
             const unsubscribe = firebaseService.auth.onAuthStateChanged((user) => {

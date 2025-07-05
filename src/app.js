@@ -1,3 +1,9 @@
+import { firebaseService } from './firebase-service.js';
+window.firebaseService = firebaseService; // still attach globally if needed
+
+import { tracklySupabase } from './supabase-client.js';
+window.tracklySupabase = tracklySupabase;
+
 // App script for Trackly
 console.log("Trackly: App script loaded")
 

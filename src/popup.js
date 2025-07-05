@@ -1,3 +1,9 @@
+import { firebaseService } from './firebase-service.js';
+window.firebaseService = firebaseService; // still attach globally if needed
+
+import { tracklySupabase } from './supabase-client.js';
+window.tracklySupabase = tracklySupabase;
+
 document.addEventListener("DOMContentLoaded", async () => {
   // Load watchlist
   const watchlistContainer = document.getElementById("watchlist-container");
@@ -33,12 +39,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         userInfo.style.display = 'flex';
         userEmail.textContent = data.user.email;
         watchlistButton.style.display = 'flex';
-        
+
         // Handle sign out
         signoutButton.addEventListener('click', async () => {
           try {
+            await firebaseService.initializeFirebase();
             await firebaseService.signOut();
+
+
             await chrome.storage.local.remove('user');
+            // Optional: redirect to login or reload UI
+            location.reload(); // or window.location.href = '/signin.html';
             window.location.reload();
           } catch (error) {
             console.error('❌ Sign out error:', error);
@@ -51,8 +62,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         signInButton.style.display = 'flex';
         watchlistButton.style.display = 'none';
         userInfo.style.display = 'none';
-         watchlistButton.style.display = 'none';
-        
+        watchlistButton.style.display = 'none';
+
         signInButton.addEventListener('click', () => {
           chrome.windows.create({
             url: 'signin.html',
@@ -68,8 +79,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Add watchlist button click handler
     watchlistButton.addEventListener('click', () => {
-      chrome.tabs.create({ 
-          url: chrome.runtime.getURL('watchlist.html')
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('watchlist.html')
       });
     });
   } catch (error) {
@@ -83,12 +94,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("view-analytics").addEventListener("click", () => {
     window.chrome.tabs.create({ url: window.chrome.runtime.getURL("analytics.html") })
   })
-   document.getElementById("watchlist-view-btn").addEventListener("click", () => {
-      chrome.tabs.create({ 
-          url: chrome.runtime.getURL('watchlist.html')
-      });
+  document.getElementById("watchlist-view-btn").addEventListener("click", () => {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL('watchlist.html')
+    });
   });
-  
+
 })
 
 function renderWatchlist(watchlist) {

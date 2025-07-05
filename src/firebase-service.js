@@ -277,4 +277,7 @@ class FirebaseService {
 }
 
 // Create global instance
-window.firebaseService = new FirebaseService();
+const firebaseService = new FirebaseService();
+window.firebaseService = firebaseService;
+
+export { firebaseService }; 

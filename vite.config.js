@@ -14,7 +14,13 @@ export default defineConfig({
                 app: resolve(__dirname, 'public/app.html'),
                 watchlist: resolve(__dirname, 'public/watchlist.html'),
                 content: resolve(__dirname, 'src/content.js'), // explicitly resolved
-                background: resolve(__dirname, 'src/background.js')  // ✅ Add this line
+                background: resolve(__dirname, 'src/background.js'),  // ✅ Add this line
+                firebaseService: resolve(__dirname, 'src/firebase-service.js'),
+                supabaseClient: resolve(__dirname, 'src/supabase-client.js'),
+                tracklySupabase: resolve(__dirname, 'src/supabase-client.js'),
+
+                //firebaseService: resolve(__dirname, 'src/firebase-service.js'), // <== make sure this exists
+                //'supabase-client': resolve(__dirname, 'src/supabase-client.js') // ✅ Add this
             },
             output: {
                 entryFileNames: (chunk) => {

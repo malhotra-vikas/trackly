@@ -2,10 +2,7 @@
 // This assumes you'll include the Supabase CDN script
 
 // Declare the supabaseClient variable
-const supabaseClient = window.supabase
-
-//NEXT_PUBLIC_SUPABASE_URL=https://frhtzxqmgycibpzrytcw.supabase.co
-//NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaHR6eHFtZ3ljaWJwenJ5dGN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5NDUwMTYsImV4cCI6MjA2MzUyMTAxNn0.ISXA-bkPHG4FIPLRJngmeXhWuzXK3sdczzxALAGnl6A
+import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client asynchronously
 async function initializeSupabase() {
@@ -19,7 +16,7 @@ async function initializeSupabase() {
     if (!keys.supabaseUrl || !keys.supabaseKey) {
       throw new Error('Missing Supabase configuration');
     }
-    const supabase = supabaseClient.createClient(
+    const supabase = createClient(
       keys.supabaseUrl,
      keys.supabaseKey
     );
@@ -129,7 +126,7 @@ async function trackEventInSupabase(userId, category, action, properties = {}) {
   return data
 }
 
-async function getUserId(firebaseUid) {
+async function getUserIdByFirebaseUid(firebaseUid) {
   try {
     const supabase = await getSupabaseClient();
     const { data, error } = await supabase
@@ -149,7 +146,7 @@ async function getUserId(firebaseUid) {
 async function addToWatchlist(firebaseUid, product) {
   try {
     const supabase = await getSupabaseClient();
-    const userId = await getUserId(firebaseUid);
+    const userId = await getUserIdByFirebaseUid(firebaseUid);
     if (!userId) {
       throw new Error('User not found');
     }
@@ -179,7 +176,7 @@ async function removeFromWatchlist(firebaseUid, asin) {
   try {
     const supabase = await getSupabaseClient();
 
-    const userId = await this.getUserId(firebaseUid);
+    const userId = await getUserIdByFirebaseUid(firebaseUid);
     if (!userId) {
       throw new Error('User not found');
     }
@@ -199,7 +196,7 @@ async function removeFromWatchlist(firebaseUid, asin) {
 
 async function isInWatchlist(firebaseUid, asin) {
   try {
-    const userId = await this.getUserId(firebaseUid);
+    const userId = await getUserIdByFirebaseUid(firebaseUid);
     if (!userId) {
       throw new Error('User not found');
     }
@@ -221,7 +218,7 @@ async function isInWatchlist(firebaseUid, asin) {
 
 async function getWatchlistItems(firebaseUid) {
   try {
-    const userId = await this.getUserId(firebaseUid);
+    const userId = await getUserIdByFirebaseUid(firebaseUid);
     if (!userId) {
       throw new Error('User not found');
     }
@@ -314,7 +311,7 @@ async function createUserAfterSignup(firebaseUid) {
 }
 
 // Export as global variables instead of ES modules
-window.tracklySupabase = {
+export const tracklySupabase = {
   getSupabaseClient,
   initAuth,
   getUserId,

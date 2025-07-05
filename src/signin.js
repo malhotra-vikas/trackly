@@ -95,39 +95,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const email = document.getElementById('signin-email').value;
                 const password = document.getElementById('signin-password').value;
 
-                console.log('Starting sign in process');
+                console.log('🔐 Starting sign in process via Firebase Client SDK');
 
-
-                const res = await fetch('http://13.222.142.175:3001/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                if (!res.ok) {
-                    const { error } = await res.json();
-                    errorElement.textContent = error || 'Login failed';
-                    return;
-                }
-
-                const { token, user } = await res.json();
-                const userCred = await loginWithCustomToken(token);
-
-                console.log('✅ Signed in:', userCred.user);
+                const result = await firebaseService.signIn(email, password);
 
 
                 if (result.success) {
-                    console.log('Sign in successful');
+                    console.log('✅ Firebase sign in successful:', result.user);
+
                     await chrome.storage.local.set({
                         user: {
-                            uid: user.uid,
-                            email: user.email
+                            uid: result.user.uid,
+                            email: result.user.email
                         }
                     });
+
                     window.close();
-                } else {
-                    errorElement.textContent = result.error;
                 }
+
             } catch (error) {
                 console.error('Sign in error:', error);
                 errorElement.textContent = error.message;
